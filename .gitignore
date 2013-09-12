@@ -1,0 +1,17 @@
+.bundle
+.DS_Store
+*~
+db/*.sqlite3
+log
+log/*.log
+tmp/**/*
+vendor/bundle
+db/groonga
+misc
+db/schema.rb
+tmp
+.rbenv-version
+.ruby-version
+public/test/
+public/development/
+
