@@ -1,0 +1,17 @@
+<%= form_for(@auth_ticket) do |f| %>
+  <% if @auth_ticket.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@auth_ticket.errors.count, "error") %> prohibited this auth_ticket from being saved:</h2>
+
+      <ul>
+      <% @auth_ticket.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

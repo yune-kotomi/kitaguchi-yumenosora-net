@@ -1,0 +1,25 @@
+<h1>Listing auth_tickets</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @auth_tickets.each do |auth_ticket| %>
+      <tr>
+        <td><%= link_to 'Show', auth_ticket %></td>
+        <td><%= link_to 'Edit', edit_auth_ticket_path(auth_ticket) %></td>
+        <td><%= link_to 'Destroy', auth_ticket, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Auth ticket', new_auth_ticket_path %>

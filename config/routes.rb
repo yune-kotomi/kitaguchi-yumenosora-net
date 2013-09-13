@@ -1,4 +1,12 @@
 Hotarugaike::Application.routes.draw do
+  resources :auth_tickets
+
+  resources :openid_urls
+
+  resources :services
+
+  resources :profiles
+
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 
