@@ -69,6 +69,9 @@ Hotarugaike::Application.configure do
   # the I18n.default_locale when a translation can not be found).
   config.i18n.fallbacks = true
 
+  config.hatenaapiauth_key = ''
+  config.hatenaapiauth_secret = ''
+  
   # Send deprecation notices to registered listeners.
   config.active_support.deprecation = :notify
 
@@ -76,5 +79,42 @@ Hotarugaike::Application.configure do
   # config.autoflush_log = false
 
   # Use default logging formatter so that PID and timestamp are not suppressed.
-  config.log_formatter = ::Logger::Formatter.new
+  logger = Log4r::Logger.new(config.title)
+  # フォーマット情報の設定
+  formatter = Log4r::PatternFormatter.new(
+    :pattern => "%d [%l]: %M",
+    :date_format => "%Y/%m/%d %H:%M%S"
+  )
+  # 出力情報の設定
+  filename = "#{::Rails.root.to_s}/log/#{::Rails.env}"
+  debug = Log4r::FileOutputter.new(
+    "file",
+    :filename => "#{filename}.log",
+    :trunc => false,
+    :formatter => formatter,
+    :level => Log4r::INFO
+  )
+  logger.add(debug)
+  
+  Net::SMTP.enable_tls(OpenSSL::SSL::VERIFY_NONE)
+  error = Log4r::EmailOutputter.new(
+    "mail",
+    
+    :server => 'smtp.gmail.com',
+    :port => 587,
+    :acct => '',
+    :passwd => 'password',
+    :authtype => 'plain',
+    
+    :from => '',
+    :to => '',
+    :subject => "ERROR: #{config.title}",
+    
+    :buffsize => 10,
+    :formatter => formatter,
+    :level => Log4r::ERROR
+  )
+  logger.add(error)
+  config.logger = logger
 end
+
