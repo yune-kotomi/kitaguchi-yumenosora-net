@@ -4,8 +4,16 @@
 # model remove the '{}' from the fixture names and add the columns immediately
 # below each fixture, per the syntax in the comments below
 #
-one: {}
-# column: value
-#
+one: 
+  title: サービス1
+  logo: http://www.example.com/logo.png
+  banner: http://www.example.com/banner.png
+  root: http://www.example.com/
+  auth_success: http://www.example.com/authenticate/success
+  auth_fail: http://www.example.com/authenticate/fail
+  profile_update: http://www.example.com/authenticate/profile_update
+  back_from_profile: http://www.example.com/authenticate/redirect_profile
+  key: service1-key
+
 two: {}
 #  column: value

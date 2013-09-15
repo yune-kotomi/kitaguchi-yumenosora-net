@@ -9,3 +9,13 @@ one: {}
 #
 two: {}
 #  column: value
+
+profile_one_primary:
+  str: http://www.example.com/one
+  profile: one
+  primary_openid: true
+
+profile_one_secondary: 
+  str: http://www.example.com/one-secondary
+  profile: one
+
