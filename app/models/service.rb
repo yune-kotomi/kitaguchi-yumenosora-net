@@ -13,9 +13,7 @@ class Service < ActiveRecord::Base
     #タイムスタンプのチェック
     timestamp = Time.at(params[:timestamp].to_i)
     if timestamp > 5.minutes.ago
-      src = [params[:id], params[:key], params[:timestamp], self.key].join
-      
-      if params[:sign] == Digest::SHA256.hexdigest(src)
+      if params[:sign] == sign(params)
         ret = true
       else
         raise SignatureInvalidError.new
