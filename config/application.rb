@@ -2,11 +2,6 @@ require File.expand_path('../boot', __FILE__)
 
 require 'rails/all'
 
-require 'log4r'
-require 'log4r/configurator'
-require "log4r/outputter/emailoutputter"
-require 'tlsmail'
-
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(:default, Rails.env)
