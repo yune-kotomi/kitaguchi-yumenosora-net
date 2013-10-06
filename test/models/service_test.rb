@@ -13,9 +13,9 @@ class ServiceTest < ActiveSupport::TestCase
       :id => 5,
       :timestamp => Time.new.to_i
     }
-    signature = Digest::SHA256.hexdigest([params[:id], params[:timestamp], @one.key].join)
+    signature = OpenSSL::HMAC::hexdigest(OpenSSL::Digest::SHA256.new, @one.key, [params[:id], params[:timestamp]].join)
     
-    assert @one.validate_params(params.merge(:sign => signature))
+    assert @one.validate_params(params.merge(:signature => signature))
   end
   
   test "認証依頼のシグネチャが不正な場合例外が発生する" do
@@ -23,10 +23,10 @@ class ServiceTest < ActiveSupport::TestCase
       :id => 5,
       :timestamp => Time.new.to_i
     }
-    signature = Digest::SHA256.hexdigest([params[:id], params[:timestamp]].join)
+    signature = OpenSSL::HMAC::hexdigest(OpenSSL::Digest::SHA256.new, @one.key, [params[:id], params[:timestamp], 'hoge'].join)
     
     assert_raise Service::SignatureInvalidError do
-      @one.validate_params(params.merge(:sign => signature))    
+      @one.validate_params(params.merge(:signature => signature))    
     end
   end
   
@@ -35,10 +35,10 @@ class ServiceTest < ActiveSupport::TestCase
       :id => 5,
       :timestamp => 6.minute.ago.to_i
     }
-    signature = Digest::SHA256.hexdigest([params[:id], params[:timestamp], @one.key].join)
+    signature = OpenSSL::HMAC::hexdigest(OpenSSL::Digest::SHA256.new, @one.key, [params[:id], params[:timestamp]].join)
     
     assert_raise Service::RequestTooOldError do
-      @one.validate_params(params.merge(:sign => signature))
+      @one.validate_params(params.merge(:signature => signature))
     end
   end
   
@@ -48,7 +48,7 @@ class ServiceTest < ActiveSupport::TestCase
       :timestamp => Time.new.to_i,
       :key => UUIDTools::UUID.random_create.to_s
     }
-    signature = Digest::SHA256.hexdigest([params[:id], params[:key], params[:timestamp], @one.key].join)
+    signature = OpenSSL::HMAC::hexdigest(OpenSSL::Digest::SHA256.new, @one.key, [params[:id], params[:key], params[:timestamp]].join)
     
     assert_equal signature, @one.sign(params)
   end
@@ -58,16 +58,18 @@ class ServiceTest < ActiveSupport::TestCase
     @one.notice(@profile)
     
     assert_requested :post, @one.profile_update, :times => 1 do |request|
-      query_params = CGI.parse(request.body)
+      params = CGI.parse(request.body)
       
-      data = {
-        'profile_id' => @profile.id,
-        'nickname' => @profile.nickname,
-        'profile_text' => @profile.profile_html
-      }.to_json
-      expected = Digest::SHA256.hexdigest([data, query_params['timestamp'].first, @one.key].join)
+      message = [
+        @one.id, 
+        params['profile_id'].first, 
+        params['nickname'].first, 
+        params['profile_text'], 
+        params['timestamp'].first
+      ].join
+      expected = OpenSSL::HMAC::hexdigest(OpenSSL::Digest::SHA256.new, @one.key, message)
       
-      expected == query_params['sign'].first
+      expected == params['signature'].first
     end
   end
 end

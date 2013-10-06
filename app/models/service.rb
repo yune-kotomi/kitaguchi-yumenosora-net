@@ -13,7 +13,7 @@ class Service < ActiveRecord::Base
     #タイムスタンプのチェック
     timestamp = Time.at(params[:timestamp].to_i)
     if timestamp > 5.minutes.ago
-      if params[:sign] == sign(params)
+      if params[:signature] == sign(params)
         ret = true
       else
         raise SignatureInvalidError.new
@@ -31,11 +31,10 @@ class Service < ActiveRecord::Base
         params[:id], 
         params[:key], 
         params[:data], 
-        params[:timestamp], 
-        self.key
+        params[:timestamp]
       ].join
     
-    return Digest::SHA256.hexdigest(src)
+    return OpenSSL::HMAC::hexdigest(OpenSSL::Digest::SHA256.new, self.key, src)
   end
 
   def notice(profile)
