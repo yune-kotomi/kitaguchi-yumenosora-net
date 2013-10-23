@@ -15,5 +15,14 @@ one:
   back_from_profile: http://www.example.com/authenticate/redirect_profile
   key: service1-key
 
-two: {}
-#  column: value
+two: 
+  title: サービス2
+  logo: http://www2.example.com/logo.png
+  banner: http://www2.example.com/banner.png
+  root: http://www2.example.com/
+  auth_success: http://www2.example.com/authenticate/success
+  auth_fail: http://www2.example.com/authenticate/fail
+  profile_update: http://www2.example.com/authenticate/profile_update
+  back_from_profile: http://www2.example.com/authenticate/redirect_profile
+  key: service2-key
+

@@ -1,4 +1,11 @@
-<p id="notice"><%= notice %></p>
-
-<%= link_to 'Edit', edit_auth_ticket_path(@auth_ticket) %> |
-<%= link_to 'Back', auth_tickets_path %>
+<%=
+profile = @auth_ticket.profile
+({
+  'profile_id' => profile.id,
+  'domain_name' => profile.domain_name,
+  'screen_name' => profile.screen_name,
+  'nickname' => profile.nickname,
+  'profile_text' => profile.profile_html,
+  'openid_url' => profile.primary_openid.str
+}).to_json.html_safe
+%>

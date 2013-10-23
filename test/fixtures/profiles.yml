@@ -12,5 +12,10 @@ one:
   profile_text: 一人目のプロフィール文
 
 #
-two: {}
-#  column: value
+two: 
+  domain_name: www.example.com
+  screen_name: two
+  long_name: www.example.com@two
+  nickname: ふたりめ
+  profile_text: 二人目のプロフィール文
+

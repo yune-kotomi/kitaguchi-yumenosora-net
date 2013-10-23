@@ -1,56 +1,113 @@
+require "pathname"
+require "cgi"
+require 'uri'
+
+require "openid"
+require 'openid/extensions/sreg'
+require 'openid/extensions/pape'
+require 'openid/store/filesystem'
+
 class OpenidUrlsController < ApplicationController
   before_action :set_openid_url, only: [:show, :edit, :update, :destroy]
 
-  # GET /openid_urls
-  # GET /openid_urls.json
-  def index
-    @openid_urls = OpenidUrl.all
+  def login
+    begin
+      openid_url = params[:openid_url].gsub("#", "%23")
+      request = consumer.begin(openid_url)
+      trust_root = root_path(:only_path => false)
+      return_to = url_for(:action=> 'complete', :service_id => params[:service_id])
+
+      url = request.redirect_url(trust_root, return_to)
+      redirect_to(url)
+      
+    rescue OpenID::OpenIDError
+      flash[:notice] = "認証に失敗しました"
+    
+    end
   end
+  
+  def complete
+    current_url = url_for(:only_path => false, :service_id => params[:service_id])
+    parameters = params.reject{ |k,v| request.path_parameters[k] }
+    parameters.delete(:service_id)
+    response = consumer.complete(parameters, current_url)
 
-  # GET /openid_urls/1
-  # GET /openid_urls/1.json
-  def show
-  end
+    begin
+      @service = Service.find(params[:service_id])
+    rescue ActiveRecord::RecordNotFound
+      # do nothing
+    end
+    
+    case response.status
+    when OpenID::Consumer::SUCCESS
+      identity_url = response.identity_url
 
-  # GET /openid_urls/new
-  def new
-    @openid_url = OpenidUrl.new
-  end
-
-  # GET /openid_urls/1/edit
-  def edit
-  end
-
-  # POST /openid_urls
-  # POST /openid_urls.json
-  def create
-    @openid_url = OpenidUrl.new(openid_url_params)
-
-    respond_to do |format|
-      if @openid_url.save
-        format.html { redirect_to @openid_url, notice: 'Openid url was successfully created.' }
-        format.json { render action: 'show', status: :created, location: @openid_url }
+      #ログイン完了
+      @openid_url = OpenidUrl.where(:str => identity_url).first
+      if @openid_url.nil?
+        @openid_url = OpenidUrl.new(:str => identity_url)
+        @openid_url.save
+      end
+      
+      if @service.blank?
+        begin
+          previous_openid_url = OpenidUrl.find(session[:openid_url_id])
+          if previous_openid_url != @openid_url and 
+            Time.at(session[:last_login]) > 5.minutes.ago and
+            previous_openid_url.profile.present? and
+            @openid_url.profile.blank?
+            # サービスが指定されておらず、前回ログインから5分以内で別のOpenIDにて認証されたら追加登録
+            @openid_url.update_attribute(:profile_id, previous_openid_url.profile.id)
+            
+            session[:openid_url_id] = @openid_url.id
+            session[:last_login] = Time.now.to_i
+            session[:login_profile_id] = @openid_url.profile.id
+            redirect_to :controller => :profiles, :action => :show
+            return
+          end
+        rescue ActiveRecord::RecordNotFound
+          # do nothing
+        end
+        
+        if @openid_url.profile.blank?
+          redirect_to :controller => :profiles, :action => :new
+        else
+          session[:openid_url_id] = @openid_url.id
+          session[:last_login] = Time.now.to_i
+          session[:login_profile_id] = @openid_url.profile.id
+          redirect_to :controller => :profiles, :action => :show
+        end
       else
-        format.html { render action: 'new' }
-        format.json { render json: @openid_url.errors, status: :unprocessable_entity }
+        session[:openid_url_id] = @openid_url.id
+        session[:last_login] = Time.now.to_i
+        if @openid_url.profile.nil?
+          flash[:notice] = "ログイン完了しました。"
+          redirect_to :controller => :profiles, 
+            :action => :new, 
+            :service_id => params[:service_id]
+
+        else
+          if @service.present?
+            @service = Service.find(params[:service_id])
+            deliver_to_service(@service, @openid_url.profile)
+          else
+            redirect_to :controller => :profiles,
+              :action => :show, 
+              :id => @openid_url.profile.id
+          end
+        end
+      end
+      
+    else
+      if @service.present?
+        redirect_to @service.auth_fail
+      else
+        flash[:notice] = "認証できませんでした。"
+        redirect_to :controller => :profiles, :action => :authenticate
       end
     end
   end
-
-  # PATCH/PUT /openid_urls/1
-  # PATCH/PUT /openid_urls/1.json
-  def update
-    respond_to do |format|
-      if @openid_url.update(openid_url_params)
-        format.html { redirect_to @openid_url, notice: 'Openid url was successfully updated.' }
-        format.json { head :no_content }
-      else
-        format.html { render action: 'edit' }
-        format.json { render json: @openid_url.errors, status: :unprocessable_entity }
-      end
-    end
-  end
-
+  
   # DELETE /openid_urls/1
   # DELETE /openid_urls/1.json
   def destroy
@@ -62,13 +119,14 @@ class OpenidUrlsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_openid_url
-      @openid_url = OpenidUrl.find(params[:id])
+  # OpenID::Consumerオブジェクトを取得
+  def consumer
+    if @consumer.nil?
+      dir = "#{::Rails.root.to_s}/tmp/"
+      store = OpenID::Store::Filesystem.new(dir)
+      @consumer = OpenID::Consumer.new(session, store)
     end
-
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def openid_url_params
-      params[:openid_url]
-    end
+    
+    return @consumer
+  end
 end

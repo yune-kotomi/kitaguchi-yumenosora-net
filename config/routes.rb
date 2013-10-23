@@ -1,17 +1,20 @@
 Hotarugaike::Application.routes.draw do
-  resources :auth_tickets
+  resources :auth_tickets, :only => [:show]
 
-  resources :openid_urls
+  resources :openid_urls, :only => [:destroy]
+  post 'openid_urls/login', :controller => :openid_urls, :action => :login
+  post 'openid_urls/complete', :controller => :openid_urls, :action => :complete
 
   resources :services
 
-  resources :profiles
+  resource :profile, :only => [:new, :create, :show, :update]
+  get 'profile/authenticate', :controller => :profiles, :action => :authenticate
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 
   # You can have the root of your site routed with "root"
-  # root 'welcome#index'
+  root 'welcome#index'
 
   # Example of regular route:
   #   get 'products/:id' => 'catalog#view'

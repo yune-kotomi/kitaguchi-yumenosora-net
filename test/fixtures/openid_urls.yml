@@ -19,3 +19,17 @@ profile_one_secondary:
   str: http://www.example.com/one-secondary
   profile: one
 
+unregistered:
+  str: http://www.example.com/unregistered
+
+profile_two_primary:
+  str: http://www.example.com/two
+  profile: two
+  primary_openid: true
+
+hatena_id:
+  str: http://www.hatena.ne.jp/user
+
+livedoor_id:
+  str: http://profile.livedoor.com/user
+

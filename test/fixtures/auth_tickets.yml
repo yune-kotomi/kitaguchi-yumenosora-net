@@ -4,8 +4,14 @@
 # model remove the '{}' from the fixture names and add the columns immediately
 # below each fixture, per the syntax in the comments below
 #
-one: {}
-# column: value
+one: 
+  profile: one
+  service: one
+  key: b67ebaf5-52cc-45ab-8cb6-66152c5f6f05
 #
-two: {}
-#  column: value
+old: 
+  profile: one
+  service: one
+  key: b67ebaf5-52cc-45ab-8cb6-66152c5f6f06
+  created_at: <%= 5.minutes.ago %>
+

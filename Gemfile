@@ -50,5 +50,6 @@ gem 'tlsmail'
 
 group :test do
   gem 'webmock'
+  gem 'rr', :require => false
 end
 

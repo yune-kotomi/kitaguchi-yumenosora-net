@@ -4,5 +4,14 @@ class OpenidUrl < ActiveRecord::Base
   def domain_name
     return URI(self.str).host
   end
+  
+  def screen_name
+    case domain_name
+    when 'www.hatena.ne.jp', 'profile.livedoor.com'
+      URI(self.str).path.sub('/', '')
+    else
+      Digest::MD5.hexdigest(self.str)
+    end
+  end
 end
 

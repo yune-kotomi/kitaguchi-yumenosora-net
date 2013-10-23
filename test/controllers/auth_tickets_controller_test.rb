@@ -3,47 +3,53 @@ require 'test_helper'
 class AuthTicketsControllerTest < ActionController::TestCase
   setup do
     @auth_ticket = auth_tickets(:one)
+    @old_auth_ticket = auth_tickets(:old)
   end
 
-  test "should get index" do
-    get :index
+  test "正しいリクエストにより認証情報が引き渡される" do
+    timestamp = Time.now.to_i
+    signature = OpenSSL::HMAC::hexdigest(
+      OpenSSL::Digest::SHA256.new, 
+      @auth_ticket.service.key, 
+      [@auth_ticket.service_id, @auth_ticket.key, timestamp].join
+    )
+    get :show, {:id => @auth_ticket.service.id, :key => @auth_ticket.key, :timestamp => timestamp, :signature => signature}
+    
     assert_response :success
-    assert_not_nil assigns(:auth_tickets)
+    result = JSON.parse(response.body)
+    profile = @auth_ticket.profile
+    assert_equal profile.id, result['profile_id']
+    assert_equal profile.domain_name, result['domain_name']
+    assert_equal profile.screen_name, result['screen_name']
+    assert_equal profile.nickname, result['nickname']
+    assert_equal profile.primary_openid.str, result['openid_url']
   end
-
-  test "should get new" do
-    get :new
-    assert_response :success
+  
+  test "認証情報は一度しか取得できない" do
+    timestamp = Time.now.to_i
+    signature = OpenSSL::HMAC::hexdigest(
+      OpenSSL::Digest::SHA256.new, 
+      @auth_ticket.service.key, 
+      [@auth_ticket.service_id, @auth_ticket.key, timestamp].join
+    )
+    get :show, {:id => @auth_ticket.service.id, :key => @auth_ticket.key, :timestamp => timestamp, :signature => signature}
+    get :show, {:id => @auth_ticket.service.id, :key => @auth_ticket.key, :timestamp => timestamp, :signature => signature}
+    assert_response :missing
   end
-
-  test "should create auth_ticket" do
-    assert_difference('AuthTicket.count') do
-      post :create, auth_ticket: {  }
-    end
-
-    assert_redirected_to auth_ticket_path(assigns(:auth_ticket))
+  
+  test "不正なリクエストでは認証情報が引き渡されない" do
+    get :show, {:id => @auth_ticket.service.id, :key => @auth_ticket.key, :timestamp => Time.now.to_i, :signature => 'invalid_signature'}
+    assert_response :forbidden
   end
-
-  test "should show auth_ticket" do
-    get :show, id: @auth_ticket
-    assert_response :success
-  end
-
-  test "should get edit" do
-    get :edit, id: @auth_ticket
-    assert_response :success
-  end
-
-  test "should update auth_ticket" do
-    patch :update, id: @auth_ticket, auth_ticket: {  }
-    assert_redirected_to auth_ticket_path(assigns(:auth_ticket))
-  end
-
-  test "should destroy auth_ticket" do
-    assert_difference('AuthTicket.count', -1) do
-      delete :destroy, id: @auth_ticket
-    end
-
-    assert_redirected_to auth_tickets_path
+  
+  test "認証キーが古い場合、認証情報が引き渡されない" do
+    timestamp = Time.now.to_i
+    signature = OpenSSL::HMAC::hexdigest(
+      OpenSSL::Digest::SHA256.new, 
+      @old_auth_ticket.service.key, 
+      [@old_auth_ticket.service_id, @old_auth_ticket.key, timestamp].join
+    )
+    get :show, {:id => @old_auth_ticket.service.id, :key => @old_auth_ticket.key, :timestamp => timestamp, :signature => signature}
+    assert_response :missing
   end
 end
