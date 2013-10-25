@@ -39,15 +39,7 @@ class ApplicationController < ActionController::Base
     auth_ticket = service.auth_tickets.create(:profile_id => profile.id)
     
     # サービスへ引渡し
-    timestamp = Time.now.to_i
-    query = {
-      :id => service.id,
-      :key => auth_ticket.key,
-      :timestamp => timestamp
-    }
-    query[:signature] = service.sign(query)
-    
-    query = query.map do |key, value|
+    query = auth_ticket.deliver_params.map do |key, value|
       "#{key}=#{CGI.escape(value.to_s)}"
     end.join('&')
     

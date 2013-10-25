@@ -59,13 +59,13 @@ class ProfilesController < ApplicationController
       @service = Service.find(params[:id])
       # 署名検証
       begin
-        @service.validate_params(params)
+        @service.validate_authenticate_request(params)
         
         if @login_profile.present?
           # ログイン済みなのでサービスに戻す
           deliver_to_service(@service, @login_profile)
         end
-      rescue Service::SignatureInvalidError, Service::RequestTooOldError
+      rescue Service::InvalidSignatureError
         forbidden
       end
       

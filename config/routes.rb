@@ -1,5 +1,5 @@
 Hotarugaike::Application.routes.draw do
-  resources :auth_tickets, :only => [:show]
+  get 'profile/retrieve', :controller => :auth_tickets, :action => :show
 
   resources :openid_urls, :only => [:destroy]
   post 'openid_urls/login', :controller => :openid_urls, :action => :login

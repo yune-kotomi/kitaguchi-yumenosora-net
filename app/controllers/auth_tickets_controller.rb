@@ -7,9 +7,9 @@ class AuthTicketsController < ApplicationController
     
     if @auth_ticket.present?
       begin
-        @auth_ticket.service.validate_params(params)
+        @auth_ticket.validate_retrieve_request(params)
         @auth_ticket.destroy
-      rescue Service::SignatureInvalidError
+      rescue AuthTicket::InvalidSignatureError
         forbidden
       end
     else

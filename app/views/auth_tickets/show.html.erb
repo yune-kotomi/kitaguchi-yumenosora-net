@@ -1,11 +1,1 @@
-<%=
-profile = @auth_ticket.profile
-({
-  'profile_id' => profile.id,
-  'domain_name' => profile.domain_name,
-  'screen_name' => profile.screen_name,
-  'nickname' => profile.nickname,
-  'profile_text' => profile.profile_html,
-  'openid_url' => profile.primary_openid.str
-}).to_json.html_safe
-%>
+<%= @auth_ticket.retrieve_response.to_json.html_safe %>

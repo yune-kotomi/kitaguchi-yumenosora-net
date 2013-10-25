@@ -11,13 +11,14 @@ class AuthTicketsControllerTest < ActionController::TestCase
     signature = OpenSSL::HMAC::hexdigest(
       OpenSSL::Digest::SHA256.new, 
       @auth_ticket.service.key, 
-      [@auth_ticket.service_id, @auth_ticket.key, timestamp].join
+      [@auth_ticket.service_id, @auth_ticket.key, timestamp, 'retrieve'].join
     )
     get :show, {:id => @auth_ticket.service.id, :key => @auth_ticket.key, :timestamp => timestamp, :signature => signature}
     
     assert_response :success
     result = JSON.parse(response.body)
     profile = @auth_ticket.profile
+    assert_equal ['profile_id', 'domain_name', 'screen_name', 'nickname', 'profile_text', 'openid_url', 'timestamp', 'signature'].sort, result.keys.sort
     assert_equal profile.id, result['profile_id']
     assert_equal profile.domain_name, result['domain_name']
     assert_equal profile.screen_name, result['screen_name']
@@ -30,7 +31,7 @@ class AuthTicketsControllerTest < ActionController::TestCase
     signature = OpenSSL::HMAC::hexdigest(
       OpenSSL::Digest::SHA256.new, 
       @auth_ticket.service.key, 
-      [@auth_ticket.service_id, @auth_ticket.key, timestamp].join
+      [@auth_ticket.service_id, @auth_ticket.key, timestamp, 'retrieve'].join
     )
     get :show, {:id => @auth_ticket.service.id, :key => @auth_ticket.key, :timestamp => timestamp, :signature => signature}
     get :show, {:id => @auth_ticket.service.id, :key => @auth_ticket.key, :timestamp => timestamp, :signature => signature}
@@ -47,7 +48,7 @@ class AuthTicketsControllerTest < ActionController::TestCase
     signature = OpenSSL::HMAC::hexdigest(
       OpenSSL::Digest::SHA256.new, 
       @old_auth_ticket.service.key, 
-      [@old_auth_ticket.service_id, @old_auth_ticket.key, timestamp].join
+      [@old_auth_ticket.service_id, @old_auth_ticket.key, timestamp, 'retrieve'].join
     )
     get :show, {:id => @old_auth_ticket.service.id, :key => @old_auth_ticket.key, :timestamp => timestamp, :signature => signature}
     assert_response :missing

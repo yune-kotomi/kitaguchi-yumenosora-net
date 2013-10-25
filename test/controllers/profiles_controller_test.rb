@@ -16,7 +16,7 @@ class ProfilesControllerTest < ActionController::TestCase
 
   test "authenticateはログイン済みの場合は認証チケットを発行してサービスに戻す" do
     timestamp = Time.new.to_i
-    message = [@service.id, timestamp].join
+    message = [@service.id, timestamp, 'authenticate'].join
     signature = OpenSSL::HMAC::hexdigest(OpenSSL::Digest::SHA256.new, @service.key, message)
     
     assert_difference('AuthTicket.count') do
@@ -35,7 +35,7 @@ class ProfilesControllerTest < ActionController::TestCase
   
   test "初めて使うサービスの場合、結びつけた上でサービスに戻す" do
     timestamp = Time.new.to_i
-    message = [@service2.id, timestamp].join
+    message = [@service2.id, timestamp, 'authenticate'].join
     signature = OpenSSL::HMAC::hexdigest(OpenSSL::Digest::SHA256.new, @service2.key, message)
     
     assert_difference('ProfileService.count') do
@@ -64,7 +64,7 @@ class ProfilesControllerTest < ActionController::TestCase
   
   test "authenticateはログアウト状態の場合、使用するIDの入力を求める" do
     timestamp = Time.new.to_i
-    message = [@service.id, timestamp].join
+    message = [@service.id, timestamp, 'authenticate'].join
     signature = OpenSSL::HMAC::hexdigest(OpenSSL::Digest::SHA256.new, @service.key, message)
     
     assert_no_difference('AuthTicket.count') do

@@ -8,34 +8,13 @@ class Service < ActiveRecord::Base
   has_many :auth_tickets
   has_many :profile_services
 
-  def validate_params(params)
-    ret = false
-
-    #タイムスタンプのチェック
-    timestamp = Time.at(params[:timestamp].to_i)
-    if timestamp > 5.minutes.ago
-      if params[:signature] == sign(params)
-        ret = true
-      else
-        raise SignatureInvalidError.new
-      end
-
+  def validate_authenticate_request(params)
+    if Time.at(params[:timestamp].to_i) > 5.minutes.ago and 
+      sign([self.id, params[:timestamp], 'authenticate'].join) == params[:signature]
+      true
     else
-      raise RequestTooOldError.new
+      raise InvalidSignatureError.new
     end
-
-    return ret
-  end
-
-  def sign(params)
-    src = [
-        params[:id], 
-        params[:key], 
-        params[:data], 
-        params[:timestamp]
-      ].join
-    
-    return OpenSSL::HMAC::hexdigest(OpenSSL::Digest::SHA256.new, self.key, src)
   end
 
   def notice(profile)
@@ -50,9 +29,10 @@ class Service < ActiveRecord::Base
 
     message = [
       params['id'], params['profile_id'], 
-      params['nickname'], params['profile_text'], params['timestamp']
+      params['nickname'], params['profile_text'], params['timestamp'],
+      'update'
     ].join
-    params['signature'] = OpenSSL::HMAC::hexdigest(OpenSSL::Digest::SHA256.new, self.key, message)
+    params['signature'] = sign(message)
 
     params = params.map {|key, value| "#{key}=#{CGI.escape(value.to_s)}" }.join("&")
     begin
@@ -67,6 +47,10 @@ class Service < ActiveRecord::Base
     end
   end
   
-  class SignatureInvalidError < RuntimeError; end
-  class RequestTooOldError < RuntimeError; end
+  class InvalidSignatureError < RuntimeError; end
+  
+  private
+  def sign(message)
+    OpenSSL::HMAC::hexdigest(OpenSSL::Digest::SHA256.new, self.key, message)
+  end
 end
