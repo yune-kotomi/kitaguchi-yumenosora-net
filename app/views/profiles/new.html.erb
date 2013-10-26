@@ -1,5 +1,30 @@
 <h1>New profile</h1>
 
-<%= render 'form' %>
+<%= form_tag profile_path do%>
+  <% if @profile.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@profile.errors.count, "error") %> prohibited this profile from being saved:</h2>
 
-<%= link_to 'Back', profiles_path %>
+      <ul>
+      <% @profile.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= text_field_tag "profile[nickname]", '' %>
+  </div>
+  
+  <div>
+    <%= text_area_tag "profile[profile_text]" %>
+  </div>
+
+  <%= hidden_field_tag 'id', params[:service_id] %>
+
+  <div class="actions">
+    <%= submit_tag %>
+  </div>
+<% end %>
+

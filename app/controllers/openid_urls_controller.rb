@@ -28,7 +28,7 @@ class OpenidUrlsController < ApplicationController
   
   def complete
     current_url = url_for(:only_path => false, :service_id => params[:service_id])
-    parameters = params.reject{ |k,v| request.path_parameters[k] }
+    parameters = params.reject{ |k,v| request.path_parameters[k.to_sym] }
     parameters.delete(:service_id)
     response = consumer.complete(parameters, current_url)
 
@@ -87,8 +87,8 @@ class OpenidUrlsController < ApplicationController
             :service_id => params[:service_id]
 
         else
+          session[:login_profile_id] = @openid_url.profile.id
           if @service.present?
-            @service = Service.find(params[:service_id])
             deliver_to_service(@service, @openid_url.profile)
           else
             redirect_to :controller => :profiles,

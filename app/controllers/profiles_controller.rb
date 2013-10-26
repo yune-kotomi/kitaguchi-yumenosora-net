@@ -4,14 +4,20 @@ class ProfilesController < ApplicationController
   # GET /profiles/1
   # GET /profiles/1.json
   def show
+    @profile = @login_profile
+    begin
+      @service = Service.find(params[:service_id])
+    rescue ActiveRecord::RecordNotFound
+      # do nothing
+    end
   end
   
   def new
-  
+    @profile = Profile.new
   end
   
   def create
-    @service = Service.find(params[:service_id])
+    @service = Service.find(params[:id])
     @openid_url = OpenidUrl.find(session[:openid_url_id])
     if @openid_url.profile.present?
       # 登録済みのOpenIDなのでプロフィールを作成しない
@@ -60,7 +66,6 @@ class ProfilesController < ApplicationController
       # 署名検証
       begin
         @service.validate_authenticate_request(params)
-        
         if @login_profile.present?
           # ログイン済みなのでサービスに戻す
           deliver_to_service(@service, @login_profile)
@@ -73,5 +78,14 @@ class ProfilesController < ApplicationController
     rescue ActiveRecord::RecordNotFound
       # do nothing
     end
+  end
+  
+  def logout
+    session[:openid_url_id] = nil
+    session[:last_login] = nil
+    session[:login_profile_id] = nil
+    
+    @service = Service.find(params[:id])
+    redirect_to @service.root
   end
 end

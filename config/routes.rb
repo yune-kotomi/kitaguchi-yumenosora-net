@@ -3,12 +3,13 @@ Hotarugaike::Application.routes.draw do
 
   resources :openid_urls, :only => [:destroy]
   post 'openid_urls/login', :controller => :openid_urls, :action => :login
-  post 'openid_urls/complete', :controller => :openid_urls, :action => :complete
+  get 'openid_urls/complete(/:service_id)', :controller => :openid_urls, :action => :complete
 
   resources :services
 
   resource :profile, :only => [:new, :create, :show, :update]
   get 'profile/authenticate', :controller => :profiles, :action => :authenticate
+  get 'profile/logout' => 'profiles#logout'
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".

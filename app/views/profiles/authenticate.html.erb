@@ -1,0 +1,14 @@
+<% if @service.blank? %>
+  <% if Time.at(session[:last_login]) > 5.minutes.ago %>
+    追加するIDでログインしてください
+  <% else %>
+    現在使用中のIDでログインしてください
+  <% end %>
+<% end %>
+
+<%= form_tag openid_urls_login_path do %>
+  <%= hidden_field_tag 'service_id', @service.id if @service.present? %>
+  <%= text_field_tag :openid_url %>
+  <%= submit_tag %>
+<% end %>
+

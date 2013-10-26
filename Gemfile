@@ -48,6 +48,10 @@ gem 'ruby-openid'
 gem 'hatenaapiauth'
 gem 'tlsmail'
 
+group :development, :test do
+  gem 'pry'
+end
+
 group :test do
   gem 'webmock'
   gem 'rr', :require => false

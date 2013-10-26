@@ -29,7 +29,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
       mock(klass).begin('http://example.com/') {
         mock!.redirect_url(
           'http://test.host/',
-          "http://test.host/openid_urls/complete?service_id=#{@service.id}"
+          "http://test.host/openid_urls/complete/#{@service.id}"
         ) {'http://example.com/openid-provider-url'}
       }
     end
@@ -45,7 +45,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     any_instance_of(OpenID::Consumer) do |klass|
       mock(klass).complete(
         @parameters, 
-        "http://test.host/openid_urls/complete?service_id=#{@service.id}"
+        "http://test.host/openid_urls/complete/#{@service.id}"
       ) {
         response = mock!
         response.identity_url { @parameters['openid.identity'] }
@@ -69,7 +69,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     any_instance_of(OpenID::Consumer) do |klass|
       mock(klass).complete(
         @parameters, 
-        "http://test.host/openid_urls/complete?service_id=#{@service2.id}"
+        "http://test.host/openid_urls/complete/#{@service2.id}"
       ) {
         response = mock!
         response.identity_url { @primary_openid_url.str }
@@ -95,7 +95,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     any_instance_of(OpenID::Consumer) do |klass|
       mock(klass).complete(
         @parameters, 
-        "http://test.host/openid_urls/complete?service_id=#{@service.id}"
+        "http://test.host/openid_urls/complete/#{@service.id}"
       ) {
         response = mock!
         response.identity_url { @primary_openid_url.str }
@@ -115,6 +115,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     assert /^#{@service.auth_success}/ =~ response.location
     assert ['id', 'key', 'timestamp', 'signature'].sort, 
       CGI.parse(URI(response.location).query).keys.sort
+    assert_equal @primary_openid_url.profile.id, session[:login_profile_id]
   end
   
   test "追加登録の場合は認証成功後プロフィールへ結びつけ" do
@@ -211,7 +212,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     any_instance_of(OpenID::Consumer) do |klass|
       mock(klass).complete(
         @parameters, 
-        "http://test.host/openid_urls/complete?service_id=#{@service.id}"
+        "http://test.host/openid_urls/complete/#{@service.id}"
       ) {
         response = mock!
         response.status { OpenID::Consumer::FAILURE }
@@ -233,7 +234,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     any_instance_of(OpenID::Consumer) do |klass|
       mock(klass).complete(
         @parameters, 
-        "http://test.host/openid_urls/complete?service_id=#{@service.id}"
+        "http://test.host/openid_urls/complete/#{@service.id}"
       ) {
         response = mock!
         response.status { OpenID::Consumer::CANCEL }

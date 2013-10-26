@@ -91,7 +91,7 @@ class ProfilesControllerTest < ActionController::TestCase
       post :create, 
         {
           :profile => {:nickname => 'nickname'}, 
-          :service_id => @service.id
+          :id => @service.id
         },
         {:openid_url_id => @unregistered_openid_url.id}
     end
@@ -133,6 +133,14 @@ class ProfilesControllerTest < ActionController::TestCase
       params = CGI.parse(post_request.body)
       'new nickname' == params['nickname'].first and @profile.id.to_s == params['profile_id'].first
     end
+  end
+  
+  test "ログアウト後、サービスに戻す" do
+    get :logout, :id => @service.id
+    assert_redirected_to @service.root
+    assert_nil session[:login_profile_id]
+    assert_nil session[:last_login]
+    assert_nil session[:openid_url_id]
   end
 end
 

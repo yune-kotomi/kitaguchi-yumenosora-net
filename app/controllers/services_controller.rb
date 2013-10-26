@@ -24,7 +24,7 @@ class ServicesController < ApplicationController
   # POST /services
   # POST /services.json
   def create
-    @service = Service.new(service_params)
+    @service = Service.new(service_params.permit(:title, :logo, :banner, :root, :auth_success, :auth_fail, :profile_update, :back_from_profile))
 
     respond_to do |format|
       if @service.save
@@ -41,7 +41,7 @@ class ServicesController < ApplicationController
   # PATCH/PUT /services/1.json
   def update
     respond_to do |format|
-      if @service.update(service_params)
+      if @service.update(service_params.permit(:title, :logo, :banner, :root, :auth_success, :auth_fail, :profile_update, :back_from_profile))
         format.html { redirect_to @service, notice: 'Service was successfully updated.' }
         format.json { head :no_content }
       else
