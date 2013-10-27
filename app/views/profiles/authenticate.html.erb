@@ -1,5 +1,5 @@
 <% if @service.blank? %>
-  <% if Time.at(session[:last_login]) > 5.minutes.ago %>
+  <% if Time.at(session[:last_login].to_i) > 5.minutes.ago %>
     追加するIDでログインしてください
   <% else %>
     現在使用中のIDでログインしてください

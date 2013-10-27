@@ -106,7 +106,7 @@ class ProfilesControllerTest < ActionController::TestCase
   test "should show profile" do
     get :show, {}, {:login_profile_id => @profile.id}
     assert_response :success
-    assert_equal @login_profile, assigns(:profile)
+    assert_equal @profile, assigns(:profile)
   end
 
   test "ログアウト状態でupdateは不可" do
