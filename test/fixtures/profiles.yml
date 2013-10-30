@@ -19,3 +19,10 @@ two:
   nickname: ふたりめ
   profile_text: 二人目のプロフィール文
 
+hatena:
+  domain_name: www.hatena.ne.jp
+  screen_name: user
+  long_name: www.hatena.ne.jp@user
+  nickname: はてな
+  profile_text: はてなユーザ
+

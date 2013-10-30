@@ -4,6 +4,8 @@ Hotarugaike::Application.routes.draw do
   resources :openid_urls, :only => [:destroy]
   post 'openid_urls/login', :controller => :openid_urls, :action => :login
   get 'openid_urls/complete(/:service_id)', :controller => :openid_urls, :action => :complete
+  get 'hatena/login' => 'openid_urls#hatena_authenticate'
+  get 'hatena/complete' => 'openid_urls#hatena_complete'
 
   resources :services
 

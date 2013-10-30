@@ -1,0 +1,12 @@
+# Be sure to restart your server when you modify this file.
+
+case Rails.env
+when 'development', 'test'
+  Hotarugaike::Application.config.hatenaapiauth_key = ''
+  Hotarugaike::Application.config.hatenaapiauth_secret = ''
+
+else
+  Hotarugaike::Application.config.hatenaapiauth_key = ''
+  Hotarugaike::Application.config.hatenaapiauth_secret = ''
+end
+

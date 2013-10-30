@@ -8,3 +8,7 @@ one:
   profile: one
   service: one
 
+hatena_service1:
+  profile: hatena
+  service: one
+

@@ -28,7 +28,8 @@ profile_two_primary:
   primary_openid: true
 
 hatena_id:
-  str: http://www.hatena.ne.jp/user
+  str: http://www.hatena.ne.jp/user/
+  profile: hatena
 
 livedoor_id:
   str: http://profile.livedoor.com/user

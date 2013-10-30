@@ -8,7 +8,7 @@ class OpenidUrl < ActiveRecord::Base
   def screen_name
     case domain_name
     when 'www.hatena.ne.jp', 'profile.livedoor.com'
-      URI(self.str).path.sub('/', '')
+      URI(self.str).path.gsub('/', '')
     else
       Digest::MD5.hexdigest(self.str)
     end

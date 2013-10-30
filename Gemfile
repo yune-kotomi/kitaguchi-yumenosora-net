@@ -47,6 +47,7 @@ gem 'uuidtools'
 gem 'ruby-openid'
 gem 'hatenaapiauth'
 gem 'tlsmail'
+gem 'opal-rails'
 
 group :development, :test do
   gem 'pry'

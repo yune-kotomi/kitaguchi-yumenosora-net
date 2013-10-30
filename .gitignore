@@ -14,4 +14,5 @@ tmp
 .ruby-version
 public/test/
 public/development/
+config/initializers/hatena_api_auth.rb
 
