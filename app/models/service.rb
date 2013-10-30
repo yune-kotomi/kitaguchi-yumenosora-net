@@ -22,8 +22,7 @@ class Service < ActiveRecord::Base
       'id' => self.id,
       'profile_id' => profile.id,
       'nickname' => profile.nickname,
-      # cf. http://jasonfox.com/post/14571407609/undefined-method-bytesize-for-nil-nilclass
-      'profile_text' => ActionController::Base.helpers.strip_tags(profile.profile_html(:section_anchor_prefix => "profile_")),
+      'profile_text' => profile.profile_html(:section_anchor_prefix => "profile_"),
       'timestamp' => Time.now.to_i
     }
 

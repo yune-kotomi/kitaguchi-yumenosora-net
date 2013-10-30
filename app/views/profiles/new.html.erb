@@ -1,30 +1,46 @@
-<h1>New profile</h1>
-
-<%= form_tag profile_path do%>
-  <% if @profile.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@profile.errors.count, "error") %> prohibited this profile from being saved:</h2>
-
-      <ul>
-      <% @profile.errors.full_messages.each do |msg| %>
-        <li><%= msg %></li>
-      <% end %>
-      </ul>
-    </div>
-  <% end %>
-
-  <div>
-    <%= text_field_tag "profile[nickname]", '' %>
-  </div>
-  
-  <div>
-    <%= text_area_tag "profile[profile_text]" %>
-  </div>
-
-  <%= hidden_field_tag 'id', params[:service_id] %>
-
-  <div class="actions">
-    <%= submit_tag %>
-  </div>
+<% @title = "新規プロフィール作成" %>
+<% content_for :breadcrumb do %>
+  <% if @service.present? %><li><%= link_to @service.title, @service.root %></li><% end %>
 <% end %>
+<% content_for :head do -%>
+  <%= javascript_include_tag "new_profile" %>
+<% end %>
+
+<div class="column half">
+  <%= render :layout => '/shared/column', :locals => {:id => 'new-profile', :title => '新規プロフィール作成'} do %>
+    <% if @profile.errors.any? %>
+      <div class="content">
+        <h2>入力にエラーがあります</h2>
+        <div>
+          <ul>
+          <% @profile.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+          </ul>
+        </div>
+      </div>
+    <% end %>
+    
+    <%= form_tag profile_path do%>
+      <div class="content">
+        <h2>新規プロフィール作成</h2>
+        
+        <div class="input-field">
+          <label for="profile_nickname" style="width:6em">ニックネーム</label>
+          <%= text_field_tag "profile[nickname]", '' %>
+        </div>
+        
+        <div class="input-field">
+          <label for="profile_profile_text" style="width:6em">自己紹介文</label>
+          <%= text_area_tag "profile[profile_text]" %>
+        </div>
+      </div>
+      <%= hidden_field_tag 'id', params[:service_id] %>
+    <% end %>
+    
+    <ul class="menu">
+      <li id="submit">プロフィールを作成して次へ</li>
+    </ul>
+  <% end %>
+</div>
 

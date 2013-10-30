@@ -33,7 +33,7 @@ class Profile < ActiveRecord::Base
     end
         
     html = tex_cgi_switch(html, options[:tex_cgi_uri]) unless options[:tex_cgi_uri] == nil
-    return html.html_safe
+    return html.to_s
   end
   
   private

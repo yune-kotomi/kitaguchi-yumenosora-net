@@ -1,14 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Hotarugaike</title>
-  <%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
-  <%= javascript_include_tag "application", "data-turbolinks-track" => true %>
+  <title><%= @title %>: <%= if @service;@service.title; else; Hotarugaike::Application.config.title;end %></title>
+  <%= stylesheet_link_tag    "application", :media => "all" %>
   <%= csrf_meta_tags %>
+  <%= javascript_include_tag "application" %>
+  <%= yield :head %>
 </head>
-<body>
 
-<%= yield %>
+<body 
+  data-base-url="<%= url_for root_path(:only_path => false) %>"
+  data-rails-env="<%= Rails.env.to_s %>">
 
+  <div id="header" class="clearfix">
+    <div class="banner">
+      <%= link_to image_tag('logo.png'), "/" unless @service %>
+      <%= link_to image_tag(@service.logo), @service.root if @service %>
+    </div>
+    <div class="breadcrumb clearfix">
+      <ul>
+        <%= yield :breadcrumb %>
+      </ul>
+    </div>
+  </div>
+  
+  
+  <div class="container clearfix <%= params[:controller] %>" id="content">
+    <%= yield %>
+  </div>
+
+  <script id="ojikoen-ui-dialog-template" type="text/x-jquery-tmpl">
+  <div>
+    <div class="overlay" style="display:none"></div>
+    <div class="ojikoen-ui-dialog" style="display:none">
+      <div class="title">${title}</div>
+      <div class="message">${message}</div>
+      
+      <div class="input">
+        <input type="text" value="${value}">
+      </div>
+      
+      <div class="buttons clearfix">
+        <button class="cancel">${cancel}</button>
+        <button class="ok">${ok}</button>
+      </div>
+    </div>
+  </div>
+  </script>
 </body>
 </html>
