@@ -121,6 +121,7 @@ class OpenidUrlsController < ApplicationController
           Time.at(session[:last_login]) > 5.minutes.ago and
           previous_openid_url.profile.present? and
           @openid_url.profile.blank?
+          
           # サービスが指定されておらず、前回ログインから5分以内で別のOpenIDにて認証されたら追加登録
           @openid_url.update_attribute(:profile_id, previous_openid_url.profile.id)
           
@@ -128,6 +129,11 @@ class OpenidUrlsController < ApplicationController
           session[:last_login] = Time.now.to_i
           session[:login_profile_id] = @openid_url.profile.id
           redirect_to :controller => :profiles, :action => :show
+          return
+        elsif previous_openid_url == @openid_url
+          # サービスIDなしで認証がやり直された場合は追加登録の前処理とみなす
+          session[:last_login] = Time.now.to_i
+          redirect_to :controller => :profiles, :action => :authenticate
           return
         end
       rescue ActiveRecord::RecordNotFound
