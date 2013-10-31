@@ -10,8 +10,8 @@ require 'openid/store/filesystem'
 require 'hatena/api/auth'
 
 class OpenidUrlsController < ApplicationController
-  before_action :set_openid_url, only: [:show, :edit, :update, :destroy]
-
+  before_filter :login_required, :only => [:destroy]
+  
   def login
     begin
       openid_url = params[:openid_url].gsub("#", "%23")
@@ -57,10 +57,16 @@ class OpenidUrlsController < ApplicationController
   # DELETE /openid_urls/1
   # DELETE /openid_urls/1.json
   def destroy
-    @openid_url.destroy
-    respond_to do |format|
-      format.html { redirect_to openid_urls_url }
-      format.json { head :no_content }
+    @openid_url = OpenidUrl.find(params[:id])
+    
+    if @login_profile == @openid_url.profile
+      @openid_url.destroy unless @openid_url.primary_openid
+      
+      respond_to do |format|
+        format.html { redirect_to profile_path }
+      end
+    else
+      forbidden
     end
   end
   

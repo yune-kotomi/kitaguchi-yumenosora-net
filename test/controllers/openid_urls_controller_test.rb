@@ -6,6 +6,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     @service = services(:one)
     @service2 = services(:two)
     @primary_openid_url = openid_urls(:profile_one_primary)
+    @secondary_openid_url = openid_urls(:profile_one_secondary)
     
     @others_openid_url = openid_urls(:profile_two_primary)
     
@@ -394,6 +395,34 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     end
     
     assert_redirected_to @service.auth_fail
+  end
+  
+  test "ログアウト状態ならOpenIDを削除できない" do
+    assert_no_difference('OpenidUrl.count') do
+      delete :destroy, :id => @secondary_openid_url
+    end
+    assert_response :forbidden
+  end
+  
+  test "別のプロフィールのOpenIDは削除できない" do
+    assert_no_difference('OpenidUrl.count') do
+      delete :destroy, {:id => @others_openid_url}, {:login_profile_id => @profile.id}
+    end
+    assert_response :forbidden
+  end
+  
+  test "自分のプロフィールのOpenIDは削除できる" do
+    assert_difference('OpenidUrl.count', -1) do
+      delete :destroy, {:id => @secondary_openid_url}, {:login_profile_id => @profile.id}
+    end
+    assert_redirected_to :controller => :profiles, :action => :show
+  end
+  
+  test "自分のプライマリOpenIDは削除できない" do
+    assert_no_difference('OpenidUrl.count') do
+      delete :destroy, {:id => @primary_openid_url}, {:login_profile_id => @profile.id}
+    end
+    assert_redirected_to :controller => :profiles, :action => :show
   end
 end
 
