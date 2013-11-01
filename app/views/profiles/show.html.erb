@@ -43,7 +43,7 @@
       <div>
         <ul class="menu compact">
           <% @profile.openid_urls.each do |openid_url| %>
-            <li class="notransition"><%= openid_url.str %></li>
+            <li data-destination="#openid-url-<%= openid_url.id %>"><%= openid_url.str %></li>
           <% end %>
         </ul>
       </div>
@@ -55,6 +55,34 @@
         <li class="back"><%= link_to "#{@service.title}へ戻る", @service.back_from_profile %></li>
       <% end %>
     </ul>
+  <% end %>
+</div>
+
+<div class="column half">
+  <% @profile.openid_urls.each do |openid_url| %>
+    <%= render :layout => '/shared/column', :locals => {:id => "openid-url-#{openid_url.id}", :title => 'OpenID'} do %>
+      <div class="content">
+        <h2>OpenID</h2>
+        <p>
+          <%= openid_url.str %>
+        </p>
+        
+        <% if openid_url.primary_openid %>
+          <p>
+            これは主OpenIDです。プロフィールから削除できません。
+          </p>
+        <% end %>
+      </div>
+      
+      <% unless openid_url.primary_openid %>
+        <ul class="menu">
+          <li class="delete-openid notransition" data-id="<%= openid_url.id %>">このOpenIDを削除する</li>
+        </ul>
+        <%= form_for openid_url, :html => {:id => "delete_openid_url_#{openid_url.id}"} do %>
+          <%= hidden_field_tag '_method', 'delete' %> 
+        <% end %>
+      <% end %>
+    <% end %>
   <% end %>
 </div>
 

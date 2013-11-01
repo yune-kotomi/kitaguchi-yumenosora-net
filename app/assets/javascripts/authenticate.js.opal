@@ -1,6 +1,6 @@
 def login_with(openid)
   Element.find('#openid_url').value = openid
-  `$('#openid-form form').submit()`
+  Element.find('#openid-form form').submit
 end
 
 Document.ready? do
@@ -20,7 +20,7 @@ Document.ready? do
   end
   
   Element.find('#submit').on('click') do
-    `$('#openid-form form').submit()`
+    Element.find('#openid-form form').submit
   end
 end
 

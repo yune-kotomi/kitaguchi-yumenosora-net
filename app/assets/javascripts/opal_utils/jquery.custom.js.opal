@@ -51,6 +51,10 @@ class Element
       #{self}.sortable(p);
     }
   end
+  
+  def submit
+    `#{self}.submit()`
+  end
 end
 
 module Window
