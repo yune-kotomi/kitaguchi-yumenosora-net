@@ -2,6 +2,7 @@
 <html>
 <head>
   <title><%= @title %>: <%= if @service;@service.title; else; Hotarugaike::Application.config.title;end %></title>
+  <meta name="viewport" content="width=device-width">
   <%= stylesheet_link_tag    "application", :media => "all" %>
   <%= csrf_meta_tags %>
   <%= javascript_include_tag "application" %>
@@ -27,6 +28,10 @@
   
   <div class="container clearfix <%= params[:controller] %>" id="content">
     <%= yield %>
+    
+    <ul id="column-back" class="menu" style="display:none">
+      <li class="back notransition">戻る</li>
+    </ul>
   </div>
 
   <script id="ojikoen-ui-dialog-template" type="text/x-jquery-tmpl">

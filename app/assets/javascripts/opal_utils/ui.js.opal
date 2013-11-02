@@ -29,15 +29,17 @@ module Ojikoen
       end
       
       def self.reinitialize(target)
-        %x{
-          #{target}.find('.scroll-panel').each(function(){
-            if(typeof($(this).data('jsp')) == 'undefined'){
-              $(this).jScrollPane();
-            }else{
-              $(this).data('jsp').reinitialise();
-            }
-          });
-        }
+        unless Device.mobile?
+          %x{
+            #{target}.find('.scroll-panel').each(function(){
+              if(typeof($(this).data('jsp')) == 'undefined'){
+                $(this).jScrollPane();
+              }else{
+                $(this).data('jsp').reinitialise();
+              }
+            });
+          }
+        end
       end
       
       def initialize(body)
@@ -72,14 +74,23 @@ module Ojikoen
         end
         
         # 幅・高さ
-        css = Element.new('style')
-        # エフェクト用の余白に左右１画面分(=半カラム２つ分)加算
         column_count = Element.find('#content>div.column.half').size + 
           Element.find('#content>div.column.full').size*2 + 4
-        body_width = column_count * 50
-        column_width = 100 / body_width * 50
+        if Device.mobile?
+          # 半カラム、全カラムともに画面幅
+          body_width = 100
+          column_width = 100
+          full_column_width = 100
+        else
+          # エフェクト用の余白に左右１画面分(=半カラム２つ分)加算
+          body_width = column_count * 50
+          column_width = 100 / body_width * 50
+          full_column_width = column_width * 2
+        end
         breadcrumb_width = (Element.find('div.breadcrumb>ul>li').outer_width + COMMON_MARGIN) *
           Element.find('div.breadcrumb>ul>li').size
+        
+        css = Element.new('style')
         css.html = <<EOS
 body>div.container {
   width: #{body_width}%;
@@ -88,7 +99,7 @@ div.container>div.column.half {
   width: #{column_width}%;
 }
 div.container>div.column.full {
-  width: #{column_width * 2}%;
+  width: #{full_column_width}%;
 }
 div.breadcrumb>ul {
   width: #{breadcrumb_width}px;
@@ -106,75 +117,31 @@ EOS
         
         breadcrumb_resize
         resized
-        `$('.scroll-panel').jScrollPane()`
+        `$('.scroll-panel').jScrollPane()` unless Device.mobile?
         
         Element.find('body').find('img').on('load') do
           self.class.reinitialize(Element.find('body'))
         end
         
         update_util_styles
+        
+        if Device.mobile?
+          Element.find('#column-back>li').on('click') do
+            breadcrumb = Element.find("div.breadcrumb li[data-index='#{@current_index}']")
+            if breadcrumb.prev['data-index'].to_s == ''
+              `location.href=#{breadcrumb.prev.find('a')['href']}`
+            else
+              move_to(breadcrumb.prev['data-selector'])
+            end
+          end
+        end
       end
       
       def move_to(selector)
-        target = Element.find(selector)
-        columns = target.parents
-        columns.size.times do |i|
-          column = columns.at(i)
-          if column.has_class?('main-column')
-            index = column['data-index'].to_i
-            
-            # 表示中カラムより先を隠す
-            @body.each do |c|
-              if c['data-index'].to_i > index
-                c.find('.menu>li').remove_class('active')
-                c.fade_out
-              else
-                c.fade_in
-              end
-            end
-            
-            # 指定カラムの右端がウィンドウ右端になるように横スクロール
-            if column.has_class?('half')
-              if index == 0
-                # トップレベルカラムでhalfの場合、画面中央に表示
-                position = column.offset[:left] - column.outer_width/2
-              else
-                position = column.offset[:left] - column.outer_width
-              end
-            else
-              position = column.offset[:left]
-            end
-            Ojikoen::UI.scroll_x_to(position)
-            
-            # 表示中のカラムより先のパンくずリストを隠す
-            @breadcrumbs.each do |li|
-              if li['data-index'].to_i > index
-                li.fade_out
-              else
-                li.fade_in
-              end
-            end
-            
-            # 表示中のカラムのパンくずを右端にする。領域に余裕があればトップレベルを左端に。
-            container = Element.find('div.breadcrumb')
-            breadcrumb = Element.find("div.breadcrumb li[data-index='#{index}']")
-            position = container.scroll_left + 
-              breadcrumb.offset[:left] - container.offset[:left] + 
-              breadcrumb.outer_width - 
-              container.inner_width
-            container.scroll_left = position
-            
-            # パンくずを更新
-            breadcrumb.text = target['data-title']
-            breadcrumb['data-selector'] = selector
-            
-            # 同一カラム中の他の要素を隠す
-            target.show
-            column.find(".column-element:not(#{selector})").hide
-            
-            # 縦スクロール設定
-            self.class.reinitialize(column)
-          end
+        if Device.mobile?
+          mobile_move_to(selector)
+        else
+          desktop_move_to(selector)
         end
       end
       
@@ -188,7 +155,7 @@ EOS
       def resized
         height = `$(window).innerHeight()` - Element.find('#header').outer_height
         ret = (@previous_height != height)
-        if ret == true
+        if ret == true and !Device.mobile?
           @previous_height = height
           @height_css.html = <<EOS
 body>div.container {
@@ -229,6 +196,100 @@ EOS
   height: #{Ojikoen::UI.standard_height - Ojikoen::UI::COMMON_MARGIN * 2}px;
 }
 EOS
+      end
+      
+      def desktop_move_to(selector)
+        target = Element.find(selector)
+        columns = target.parents
+        columns.size.times do |i|
+          column = columns.at(i)
+          if column.has_class?('main-column')
+            index = column['data-index'].to_i
+            @current_index = index
+            
+            # 表示中カラムより先を隠す
+            @body.each do |c|
+              if c['data-index'].to_i > index
+                c.find('.menu>li').remove_class('active')
+                c.fade_out
+              else
+                c.fade_in
+              end
+            end
+            
+            # 指定カラムの右端がウィンドウ右端になるように横スクロール
+            if column.has_class?('half')
+              if index == 0
+                # トップレベルカラムでhalfの場合、画面中央に表示
+                position = column.offset[:left] - column.outer_width/2
+              else
+                position = column.offset[:left] - column.outer_width
+              end
+            else
+              position = column.offset[:left]
+            end
+            Ojikoen::UI.scroll_x_to(position)
+            
+            update_breadcrumbs(index, target['data-title'], selector)
+            
+            # 同一カラム中の他の要素を隠す
+            target.show
+            column.find(".column-element:not(#{selector})").hide
+            
+            # 縦スクロール設定
+            self.class.reinitialize(column)
+          end
+        end
+      end
+      
+      def mobile_move_to(selector)
+        target = Element.find(selector)
+        column = target.parents.to_a.find{|element| element.has_class?('main-column') }
+        @body.each do |column|
+          column.hide
+          column.find('.menu>li').remove_class('active')
+        end
+        column.show
+        
+        target_breadcrumb = update_breadcrumbs(column['data-index'], column['data-title'], selector)
+        
+        if target_breadcrumb.prev.size > 0
+          Element.find('#column-back').show
+        else
+          Element.find('#column-back').hide
+        end
+        
+        # 同一カラム中の他の要素を隠す
+        target.show
+        column.find(".column-element:not(#{selector})").hide
+
+        @current_index = column['data-index'].to_i
+      end
+      
+      def update_breadcrumbs(index, title, selector)
+        # 表示中のカラムより先のパンくずリストを隠す
+        @breadcrumbs.each do |li|
+          if li['data-index'].to_i > index
+            li.fade_out
+          else
+            li.fade_in
+          end
+        end
+        
+        # 表示中のカラムのパンくずを右端にする。領域に余裕があればトップレベルを左端に。
+        container = Element.find('div.breadcrumb')
+        breadcrumb = Element.find("div.breadcrumb li[data-index='#{index}']")
+        position = container.scroll_left + 
+          breadcrumb.offset[:left] - container.offset[:left] + 
+          breadcrumb.outer_width - 
+          container.inner_width
+        container.scroll_left = position
+        
+        # パンくずを更新
+        breadcrumb.text = title
+        breadcrumb['data-selector'] = selector
+        
+        breadcrumb
       end
     end
     
@@ -382,52 +443,81 @@ EOS
     class Dialog
       attr_accessor :message
       
-      def initialize(params)
-        template = Element.find('#ojikoen-ui-dialog-template').template(params)
-        @overlay = template.find('div.overlay')
-        @body = template.find('div.ojikoen-ui-dialog')
-        @message = @body.find('div.message')
-        
-        @body.find('button.ok').on('click') do
-          yield(@body.find('input[type="text"]').value)
-        end
-        @body.find('button.ok,button.cancel').on('click') do
-          close
+      if Device.mobile?
+        # モバイル向けダイアログ実装
+        def initialize(params, &block)
+          @params = params
+          @block = block
         end
         
-        if params['value'].nil?
-          @body.find('div.input').remove
+        def open
+          message = "#{@params['title']}\n#{@params['message']}"
+          if @params['value'].nil?
+            if @params['cancel'].nil?
+              # OKダイアログ
+              Window.alert(message)
+            else
+              # OK/キャンセルダイアログ
+              Window.confirm(message) do
+                @block.call
+              end
+            end
+          else
+            # 入力ダイアログ
+            Window.prompt(message, @params['value']) do |value|
+              @block.call(value)
+            end
+          end
         end
-        @input_default_value = params['value']
-        
-        if params['cancel'].nil?
-          @body.find('button.cancel').remove
-          @body.find('button.ok').css('width', '100%')
+      else
+        # デスクトップ向けダイアログ実装
+        def initialize(params)
+          template = Element.find('#ojikoen-ui-dialog-template').template(params)
+          @overlay = template.find('div.overlay')
+          @body = template.find('div.ojikoen-ui-dialog')
+          @message = @body.find('div.message')
+          
+          @body.find('button.ok').on('click') do
+            yield(@body.find('input[type="text"]').value)
+          end
+          @body.find('button.ok,button.cancel').on('click') do
+            close
+          end
+          
+          if params['value'].nil?
+            @body.find('div.input').remove
+          end
+          @input_default_value = params['value']
+          
+          if params['cancel'].nil?
+            @body.find('button.cancel').remove
+            @body.find('button.ok').css('width', '100%')
+          end
+          
+          Element.find('body').append(template)
         end
         
-        Element.find('body').append(template)
-      end
-      
-      def open
-        @overlay.fade_in
-        @body.fade_in
+        def open
+          @overlay.fade_in
+          @body.fade_in
+          
+          # サイズ調整
+          height = Window.inner_height * 0.8 - 
+            @body.find('div.title').outer_height -
+            @body.find('div.buttons').outer_height
+          input = @body.find('div.input')
+          height -= input.outer_height unless input.size == 0
+          
+          @message.css('height', "#{height}px")
+          
+          input.find('input').value = @input_default_value
+          input.find('input').focus
+        end
         
-        # サイズ調整
-        height = Window.inner_height * 0.8 - 
-          @body.find('div.title').outer_height -
-          @body.find('div.buttons').outer_height
-        input = @body.find('div.input')
-        height -= input.outer_height unless input.size == 0
-        
-        @message.css('height', "#{height}px")
-        
-        input.find('input').value = @input_default_value
-        input.find('input').focus
-      end
-      
-      def close
-        @overlay.fade_out
-        @body.fade_out
+        def close
+          @overlay.fade_out
+          @body.fade_out
+        end
       end
     end
   end

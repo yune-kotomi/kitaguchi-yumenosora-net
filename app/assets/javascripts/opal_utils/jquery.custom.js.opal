@@ -71,6 +71,25 @@ module Window
       yield
     end
   end
+  
+  def self.confirm(message, &block)
+    %x{
+      if(window.confirm(#{message})){
+        #{block.call}
+      }
+    }
+  end
+  
+  def self.prompt(message, default_value = '')
+    input = `window.prompt(#{message}, #{default_value})`
+    unless `#{input} == null`
+      yield(input)
+    end
+  end
+  
+  def self.alert(message)
+    `window.alert(#{message})`
+  end
 end
 
 # HTTPにFormDataを渡すとto_jsonしようとするので
