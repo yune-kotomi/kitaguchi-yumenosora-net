@@ -116,5 +116,7 @@ Hotarugaike::Application.configure do
   )
   logger.add(error)
   config.logger = logger
+  
+  config.admin_openid_url = 'http://www.hatena.ne.jp/yune_kotomi/'
 end
 

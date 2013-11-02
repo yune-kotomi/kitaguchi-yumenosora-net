@@ -1,5 +1,6 @@
 class ServicesController < ApplicationController
   before_action :set_service, only: [:show, :edit, :update, :destroy]
+  before_action :admin_login_required
 
   # GET /services
   # GET /services.json
@@ -70,5 +71,15 @@ class ServicesController < ApplicationController
     # Never trust parameters from the scary internet, only allow the white list through.
     def service_params
       params[:service]
+    end
+    
+    def admin_login_required
+      admin_openid_url = OpenidUrl.where(:str => Hotarugaike::Application.config.admin_openid_url).first
+      if @login_profile == admin_openid_url.profile
+        true
+      else
+        forbidden
+        false
+      end
     end
 end

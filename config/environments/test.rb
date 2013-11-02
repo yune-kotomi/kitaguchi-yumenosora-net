@@ -33,4 +33,6 @@ Hotarugaike::Application.configure do
 
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
+  
+  config.admin_openid_url = 'http://www.example.com/one'
 end
