@@ -101,12 +101,19 @@ class ProfilesControllerTest < ActionController::TestCase
     assert_equal assigns(:openid_url).profile, assigns(:profile)
     assert_equal assigns(:profile).domain_name, @unregistered_openid_url.domain_name
     assert_equal assigns(:profile).screen_name, @unregistered_openid_url.screen_name
+    assert_equal assigns(:openid_url).profile.id, session[:login_profile_id]
   end
   
   test "should show profile" do
     get :show, {}, {:login_profile_id => @profile.id}
     assert_response :success
     assert_equal @profile, assigns(:profile)
+  end
+  
+  test "プロフィール編集画面をservice_id付きで開くとセッションに記録する" do
+    get :show, {:service_id => @service.id}, {:login_profile_id => @profile.id}
+    assert_response :success
+    assert_equal @service.id, session[:service_back_to]
   end
 
   test "ログアウト状態でupdateは不可" do

@@ -22,6 +22,8 @@ class OpenidUrlsController < ApplicationController
       url = request.redirect_url(trust_root, return_to)
       redirect_to(url)
       
+      flash[:auth_mode] = params[:mode]
+      
     rescue OpenID::OpenIDError
       flash[:notice] = "認証に失敗しました"
     
@@ -30,7 +32,7 @@ class OpenidUrlsController < ApplicationController
   
   def complete
     current_url = url_for(:only_path => false, :service_id => params[:service_id])
-    parameters = params.reject{ |k,v| request.path_parameters[k.to_sym] }
+    parameters = params.reject{ |k,v| request.path_parameters[k] or request.path_parameters[k.to_sym] }
     parameters.delete(:service_id)
     response = consumer.complete(parameters, current_url)
 
@@ -72,6 +74,7 @@ class OpenidUrlsController < ApplicationController
   
   def hatena_authenticate
     flash[:hatena_after_service_id] = params[:service_id]
+    flash[:auth_mode] = params[:mode]
     redirect_to hatena.uri_to_login.to_s
   end
   
@@ -120,41 +123,35 @@ class OpenidUrlsController < ApplicationController
       @openid_url.save
     end
     
-    if @service.blank?
-      begin
-        previous_openid_url = OpenidUrl.find(session[:openid_url_id])
-        if previous_openid_url != @openid_url and 
-          Time.at(session[:last_login]) > 5.minutes.ago and
-          previous_openid_url.profile.present? and
-          @openid_url.profile.blank?
-          
-          # サービスが指定されておらず、前回ログインから5分以内で別のOpenIDにて認証されたら追加登録
-          @openid_url.update_attribute(:profile_id, previous_openid_url.profile.id)
-          
-          session[:openid_url_id] = @openid_url.id
-          session[:last_login] = Time.now.to_i
-          session[:login_profile_id] = @openid_url.profile.id
-          redirect_to :controller => :profiles, :action => :show
-          return
-        elsif previous_openid_url == @openid_url
-          # サービスIDなしで認証がやり直された場合は追加登録の前処理とみなす
-          session[:last_login] = Time.now.to_i
-          redirect_to :controller => :profiles, :action => :authenticate
-          return
-        end
-      rescue ActiveRecord::RecordNotFound
-        # do nothing
-      end
-      
-      if @openid_url.profile.blank?
-        redirect_to :controller => :profiles, :action => :new
-      else
+    if flash[:auth_mode] == 'id_append'
+      # ID追加処理
+      if @openid_url.profile.present?
+        # ID追加処理第1段階
+        session[:login_profile_id] = @openid_url.profile.id
         session[:openid_url_id] = @openid_url.id
         session[:last_login] = Time.now.to_i
-        session[:login_profile_id] = @openid_url.profile.id
-        redirect_to :controller => :profiles, :action => :show
+        flash[:auth_mode] = 'id_append'
+        redirect_to :controller => :profiles, :action => :authenticate, :mode => 'id_append'
+      else
+        begin
+          previous_openid_url = OpenidUrl.find(session[:openid_url_id])
+          if Time.at(session[:last_login]) > 5.minutes.ago and previous_openid_url.profile.present?
+            @openid_url.update_attribute(:profile_id, previous_openid_url.profile.id)
+            redirect_to :controller => :profiles, :action => :show
+          else
+            # 時間たち過ぎかID追加対象のプロフィールが存在しないのでやり直し
+            session[:openid_url_id] = nil
+            session[:last_login] = nil
+            redirect_to :controller => :profiles, :action => :authenticate, :mode => 'id_append'
+          end
+        rescue ActiveRecord::RecordNotFound
+          # 前にログインに使用したOpenIDがDBに存在しないのでやりなおし
+          redirect_to :controller => :profiles, :action => :authenticate, :mode => 'id_append'
+        end
       end
+      
     else
+      # ログイン処理
       session[:openid_url_id] = @openid_url.id
       session[:last_login] = Time.now.to_i
       if @openid_url.profile.nil?

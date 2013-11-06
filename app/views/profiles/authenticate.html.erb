@@ -9,7 +9,7 @@
 <div class="column half">
   <%= render :layout => '/shared/column', :locals => {:id => 'login', :title => 'ログイン'} do %>
     <div class="content">
-      <% if @service.blank? %>
+      <% if params[:mode] == 'id_append' %>
         <h2>プロフィールに新しいOpenIDを追加します</h2>
         <div>
           <% if Time.at(session[:last_login].to_i) > 5.minutes.ago %>
@@ -27,7 +27,7 @@
     </div>
     
     <ul class="menu">
-      <li><%= link_to 'はてなID', hatena_login_path(:service_id => (if @service.present?; @service.id; else; nil; end)) %></li>
+      <li><%= link_to 'はてなID', hatena_login_path(:service_id => (if @service.present?; @service.id; else; nil; end), :mode => params[:mode]) %></li>
       <li id="livedoor">livedoor ID</li>
       <li id="mixi">mixi OpenID</li>
       <li id="google">Googleアカウント</li>
@@ -42,6 +42,7 @@
     <%= form_tag openid_urls_login_path do %>
       <div class="content">
         <%= hidden_field_tag 'service_id', @service.id if @service.present? %>
+        <%= hidden_field_tag 'mode', params[:mode] %>
         <div class="input-field">
           <label for="openid_url">OpenID URL</label>
           <%= text_field_tag :openid_url %>

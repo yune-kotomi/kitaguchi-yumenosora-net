@@ -6,7 +6,8 @@ class ProfilesController < ApplicationController
   def show
     @profile = @login_profile
     begin
-      @service = Service.find(params[:service_id])
+      @service = Service.find(params[:service_id]||session[:service_back_to])
+      session[:service_back_to] = @service.id
     rescue ActiveRecord::RecordNotFound
       # do nothing
     end
@@ -29,6 +30,7 @@ class ProfilesController < ApplicationController
       
       if @profile.save
         @openid_url.update_attributes(:primary_openid => true, :profile_id => @profile.id)
+        session[:login_profile_id] = @profile.id
         deliver_to_service(@service, @profile)
       else
         redirect_to :action => :new, :service_id => @service.id
