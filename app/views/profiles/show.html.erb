@@ -52,7 +52,7 @@
     <ul class="menu">
       <li><%= link_to '新しいOpenIDを追加する', profile_authenticate_path(:mode => 'id_append') %></li>
       <% if @service.present? %>
-        <li class="back desktop-only"><%= link_to "#{@service.title}へ戻る", @service.back_from_profile %></li>
+        <li class="back desktop-only"><%= link_to "#{@service.title}へ戻る", "#{@service.back_from_profile}?kitaguchi_profile_id=#{@login_profile.id}" %></li>
       <% end %>
     </ul>
   <% end %>

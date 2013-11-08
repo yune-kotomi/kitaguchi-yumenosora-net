@@ -47,18 +47,7 @@ class ProfilesController < ApplicationController
         profile_service.service.notice(@login_profile)
       end
       
-      case params[:back_to]
-      when 'success'
-        @service = Service.find(params[:service_id])
-        back_path = @service.auth_success
-      when 'updated'
-        @service = Service.find(params[:service_id])
-        back_path = @service.back_from_profile
-      else
-        back_path = profile_path
-      end
-      
-      format.html { redirect_to back_path }
+      format.html { render :text => 'true' }
     end
   end
   
