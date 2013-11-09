@@ -1,3 +1,8 @@
+require 'log4r'
+require 'log4r/configurator'
+require "log4r/outputter/emailoutputter"
+require 'tlsmail'
+
 Hotarugaike::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
