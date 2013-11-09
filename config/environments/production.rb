@@ -3,6 +3,14 @@ require 'log4r/configurator'
 require "log4r/outputter/emailoutputter"
 require 'tlsmail'
 
+module Log4r
+  class Logger
+    def formatter
+      @outputters.map{|outputter| outputter.formatter}.first
+    end
+  end
+end
+
 Hotarugaike::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
