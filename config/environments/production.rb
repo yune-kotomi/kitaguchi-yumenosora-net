@@ -1,5 +1,6 @@
 require 'log4r'
 require 'log4r/configurator'
+require 'log4r/yamlconfigurator'
 require "log4r/outputter/emailoutputter"
 require 'tlsmail'
 
@@ -40,7 +41,7 @@ Hotarugaike::Application.configure do
   # config.assets.css_compressor = :sass
 
   # Do not fallback to assets pipeline if a precompiled asset is missed.
-  config.assets.compile = false
+  config.assets.compile = true
 
   # Generate digests for assets URLs.
   config.assets.digest = true
@@ -92,43 +93,9 @@ Hotarugaike::Application.configure do
   # config.autoflush_log = false
 
   # Use default logging formatter so that PID and timestamp are not suppressed.
-  logger = Log4r::Logger.new(config.title)
-  # フォーマット情報の設定
-  formatter = Log4r::PatternFormatter.new(
-    :pattern => "%d [%l]: %M",
-    :date_format => "%Y/%m/%d %H:%M%S"
-  )
-  # 出力情報の設定
-  filename = "#{::Rails.root.to_s}/log/#{::Rails.env}"
-  debug = Log4r::FileOutputter.new(
-    "file",
-    :filename => "#{filename}.log",
-    :trunc => false,
-    :formatter => formatter,
-    :level => Log4r::INFO
-  )
-  logger.add(debug)
-  
   Net::SMTP.enable_tls(OpenSSL::SSL::VERIFY_NONE)
-  error = Log4r::EmailOutputter.new(
-    "mail",
-    
-    :server => 'smtp.gmail.com',
-    :port => 587,
-    :acct => '',
-    :passwd => 'password',
-    :authtype => 'plain',
-    
-    :from => '',
-    :to => '',
-    :subject => "ERROR: #{config.title}",
-    
-    :buffsize => 10,
-    :formatter => formatter,
-    :level => Log4r::ERROR
-  )
-  logger.add(error)
-  config.logger = logger
+  Log4r::YamlConfigurator.load_yaml_file("#{::Rails.root.to_s}/config/log4r.yml")
+  config.logger = Log4r::Logger["production_logger"]
   
   config.admin_openid_url = 'http://www.hatena.ne.jp/yune_kotomi/'
 end
