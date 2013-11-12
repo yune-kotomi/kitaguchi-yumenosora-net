@@ -127,7 +127,7 @@ class ProfilesControllerTest < ActionController::TestCase
       {:profile => {  }},
       {:login_profile_id => @profile.id}
       
-    assert_redirected_to profile_path(assigns(:profile))
+    assert_response :success
   end
   
   test "update実行時には登録済みサービスに対して更新通知を送信する" do
