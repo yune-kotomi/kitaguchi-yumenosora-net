@@ -14,6 +14,7 @@ class ProfilesController < ApplicationController
   end
   
   def new
+    @openid_url = OpenidUrl.find(session[:openid_url_id])
     @profile = Profile.new
   end
   

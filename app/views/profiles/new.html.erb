@@ -21,6 +21,20 @@
       </div>
     <% end %>
     
+    <% if ['www.google.com','me.yahoo.co.jp'].include?(@openid_url.domain_name) %>
+      <div class="content">
+        <h2>ユーザ登録済みにも関わらずこの画面が出る場合</h2>
+        <p>
+          他のOpenIDでユーザ登録済みではありませんか？<br>
+          その場合はそのOpenIDでログイン後、プロフィールの編集画面からこのOpenIDを追加することができます。
+        </p>
+        <p>
+          このOpenIDでユーザ登録済みにも関わらずこの画面が出る場合はお問い合わせください。<br>
+          <%= link_to '「雨上がりの青空を探して」 Twitterアカウント', "https://twitter.com/yumenosoranet" %>
+        </p>
+      </div>
+    <% end %>
+    
     <%= form_tag profile_path do%>
       <div class="content">
         <h2>新規プロフィール作成</h2>
