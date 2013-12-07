@@ -57,7 +57,7 @@ class Element
   end
 end
 
-module Window
+module WindowModule
   def self.inner_height
     return Element.find(`window`).inner_height
   end
@@ -91,6 +91,7 @@ module Window
     `window.alert(#{message})`
   end
 end
+Window = WindowModule
 
 # HTTPにFormDataを渡すとto_jsonしようとするので
 class MultipartHttp < HTTP

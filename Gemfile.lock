@@ -161,7 +161,7 @@ DEPENDENCIES
   jbuilder (~> 1.2)
   jquery-rails
   log4r
-  opal-rails
+  opal-rails (= 0.6.1)
   pg
   pry
   rails (= 4.0)
