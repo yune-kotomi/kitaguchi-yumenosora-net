@@ -53,6 +53,13 @@ class ProfilesController < ApplicationController
   end
   
   def authenticate
+    # セッションの再生成
+    temp = session.to_hash
+    reset_session
+    temp.each do |key, value|
+      session[key] = value
+    end
+    
     begin
       @service = Service.find(params[:id])
       # 署名検証

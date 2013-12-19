@@ -48,6 +48,7 @@ gem 'ruby-openid'
 gem 'hatenaapiauth'
 gem 'tlsmail'
 gem 'opal-rails', '0.6.1'
+gem 'activerecord-session_store', :github => 'rails/activerecord-session_store'
 
 group :development, :test do
   gem 'pry'
