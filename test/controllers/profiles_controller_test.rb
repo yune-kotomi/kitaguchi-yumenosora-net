@@ -62,6 +62,15 @@ class ProfilesControllerTest < ActionController::TestCase
     assert_response :success
   end
   
+  test "エラーで戻ってきた場合はサービスIDがparamsにないのでflashの値を使う" do
+    assert_no_difference('AuthTicket.count') do
+      get :authenticate, {}, {:login_profile_id => @profile.id}, {:service_id => @service2.id}
+    end
+    
+    assert_response :success
+    assert_equal @service2, assigns(:service)
+  end
+  
   test "authenticateはログアウト状態の場合、使用するIDの入力を求める" do
     timestamp = Time.new.to_i
     message = [@service.id, timestamp, 'authenticate'].join

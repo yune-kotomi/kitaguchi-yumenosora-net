@@ -146,6 +146,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
       {:login_profile_id => @profile.id}
     
     assert_redirected_to profile_authenticate_path
+    assert_equal @service.id.to_s, flash[:service_id]
   end
   
   test "はてな認証開始を叩くとはてなへリダイレクトする" do

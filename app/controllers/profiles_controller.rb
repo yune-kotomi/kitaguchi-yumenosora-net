@@ -55,6 +55,7 @@ class ProfilesController < ApplicationController
   def authenticate
     # セッションの再生成
     temp = session.to_hash
+    old_flash = flash.to_hash
     reset_session
     temp.each do |key, value|
       session[key] = value
@@ -75,7 +76,7 @@ class ProfilesController < ApplicationController
       
       # ログアウト状態なので認証サービスの選択を求める
     rescue ActiveRecord::RecordNotFound
-      # do nothing
+      @service = Service.find(old_flash[:service_id]) if old_flash[:service_id].present?
     end
   end
   

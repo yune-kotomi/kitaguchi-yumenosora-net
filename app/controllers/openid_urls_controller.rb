@@ -26,6 +26,7 @@ class OpenidUrlsController < ApplicationController
       
     rescue OpenID::OpenIDError, OpenID::DiscoveryFailure
       flash[:notice] = "認証に失敗しました"
+      flash[:service_id] = params[:service_id]
       redirect_to profile_authenticate_path
     end
   end
