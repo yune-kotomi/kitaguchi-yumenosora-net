@@ -134,6 +134,20 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     assert_redirected_to @service.auth_fail
   end
   
+  test "不正なOpenID URLをPOSTした場合、認証画面にリダイレクトで戻す" do
+    any_instance_of(OpenID::Consumer) do |klass|
+      mock(klass).begin('invalid url') {
+        raise OpenID::DiscoveryFailure.new('', '')
+      }
+    end
+    
+    post :login, 
+      {:openid_url => 'invalid url', :service_id => @service.id}, 
+      {:login_profile_id => @profile.id}
+    
+    assert_redirected_to profile_authenticate_path
+  end
+  
   test "はてな認証開始を叩くとはてなへリダイレクトする" do
     get :hatena_authenticate, :service_id => @service.id
 
