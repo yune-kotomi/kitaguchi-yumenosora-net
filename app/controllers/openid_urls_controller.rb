@@ -1,14 +1,3 @@
-require "pathname"
-require "cgi"
-require 'uri'
-
-require "openid"
-require 'openid/extensions/sreg'
-require 'openid/extensions/pape'
-require 'openid/store/filesystem'
-
-require 'hatena/api/auth'
-
 class OpenidUrlsController < ApplicationController
   before_filter :login_required, :only => [:destroy]
   
