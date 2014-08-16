@@ -4,7 +4,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
   def mock_redirect_url(service_id = nil)
     redirect_url = 'http://example.com/openid-provider-url'
     service_id = "/#{service_id}" if service_id.present?
-    
+
     any_instance_of(OpenID::Consumer) do |klass|
       mock(klass).begin('http://example.com/') {
         mock!.redirect_url(
@@ -13,34 +13,42 @@ class OpenidUrlsControllerTest < ActionController::TestCase
         ) {redirect_url}
       }
     end
-    
+
     redirect_url
   end
-  
+
   def mock_complete_response(service_id, response_status = OpenID::Consumer::SUCCESS, identity_url = nil)
     any_instance_of(OpenID::Consumer) do |klass|
       mock(klass).complete(
-        @parameters, 
+        @parameters,
         "http://test.host/openid_urls/complete#{'/' + service_id.to_s if service_id.present?}"
       ) {
         response = mock!
         response.identity_url { identity_url } if identity_url.present?
         response.status { response_status }
-        
+
         response
       }
     end
   end
-  
+
+  def mock_openid_connect_response(identity_url = nil)
+    any_instance_of(OpenIDConnect) do |klass|
+      result = {'result' => 'value'}
+      mock(klass).authentication_result({"controller"=>"openid_urls", "action"=>"openid_connect_complete"}) { result }
+      mock(klass).parse_id_token(result) { {'openid_id' => identity_url} }
+    end
+  end
+
   setup do
     @profile = profiles(:one)
     @service = services(:one)
     @service2 = services(:two)
     @primary_openid_url = openid_urls(:profile_one_primary)
     @secondary_openid_url = openid_urls(:profile_one_secondary)
-    
+
     @others_openid_url = openid_urls(:profile_two_primary)
-    
+
     @parameters = {
       "openid.return_to"=>"http://test.host/openid_urls/complete",
       "openid.ns"=>"http://specs.openid.net/auth/2.0",
@@ -58,97 +66,97 @@ class OpenidUrlsControllerTest < ActionController::TestCase
 
   test "OpenID URLをPOSTするとOPへリダイレクトする" do
     expected = mock_redirect_url(@service.id)
-    
-    post :login, 
-      {:openid_url => 'http://example.com/', :service_id => @service.id}, 
+
+    post :login,
+      {:openid_url => 'http://example.com/', :service_id => @service.id},
       {:login_profile_id => @profile.id}
-    
+
     assert_redirected_to expected
   end
-  
+
   test "OpenID認証成功後、初回ログインならプロフィール作成画面へ" do
     mock_complete_response(@service.id, OpenID::Consumer::SUCCESS, @parameters['openid.identity'])
-    
+
     assert_difference("OpenidUrl.count") do
       get :complete, @parameters.merge(:service_id => @service.id)
     end
-    
-    assert_redirected_to :controller => :profiles, 
+
+    assert_redirected_to :controller => :profiles,
       :action => :new,
       :service_id => @service.id
     assert session[:openid_url_id].present?
   end
-  
+
   test "OpenID認証成功後、初めて使うサービスなら結びつけたあとでサービスに戻す" do
     mock_complete_response(@service2.id, OpenID::Consumer::SUCCESS, @primary_openid_url.str)
-    
+
     assert_no_difference("OpenidUrl.count") do
       assert_difference("ProfileService.count") do
         get :complete, @parameters.merge(:service_id => @service2.id)
       end
     end
-    
+
     assert_response :redirect
     assert /^#{@service2.auth_success}/ =~ response.location
-    assert ['id', 'key', 'timestamp', 'signature'].sort, 
+    assert ['id', 'key', 'timestamp', 'signature'].sort,
       CGI.parse(URI(response.location).query).keys.sort
   end
-  
+
   test "OpenID認証成功後、2回目以降のログインならサービスに戻す" do
     mock_complete_response(@service.id, OpenID::Consumer::SUCCESS, @primary_openid_url.str)
-    
+
     assert_no_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
         get :complete, @parameters.merge(:service_id => @service.id)
       end
     end
-    
+
     assert_response :redirect
     assert /^#{@service.auth_success}/ =~ response.location
-    assert ['id', 'key', 'timestamp', 'signature'].sort, 
+    assert ['id', 'key', 'timestamp', 'signature'].sort,
       CGI.parse(URI(response.location).query).keys.sort
     assert_equal @primary_openid_url.profile.id, session[:login_profile_id]
   end
-  
+
   test "OpenID認証失敗後は失敗としてサービスに戻す" do
     mock_complete_response(@service.id, OpenID::Consumer::FAILURE)
-    
+
     assert_no_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
         get :complete, @parameters.merge(:service_id => @service.id)
       end
     end
-    
+
     assert_redirected_to @service.auth_fail
   end
-  
+
   test "OpenID認証キャンセル後は失敗としてサービスに戻す" do
     mock_complete_response(@service.id, OpenID::Consumer::CANCEL)
-    
+
     assert_no_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
         get :complete, @parameters.merge(:service_id => @service.id)
       end
     end
-    
+
     assert_redirected_to @service.auth_fail
   end
-  
+
   test "不正なOpenID URLをPOSTした場合、認証画面にリダイレクトで戻す" do
     any_instance_of(OpenID::Consumer) do |klass|
       mock(klass).begin('invalid url') {
         raise OpenID::DiscoveryFailure.new('', '')
       }
     end
-    
-    post :login, 
-      {:openid_url => 'invalid url', :service_id => @service.id}, 
+
+    post :login,
+      {:openid_url => 'invalid url', :service_id => @service.id},
       {:login_profile_id => @profile.id}
-    
+
     assert_redirected_to profile_authenticate_path
     assert_equal @service.id.to_s, flash[:service_id]
   end
-  
+
   test "はてな認証開始を叩くとはてなへリダイレクトする" do
     get :hatena_authenticate, :service_id => @service.id
 
@@ -157,278 +165,344 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     assert_equal ['api_key', 'api_sig'].sort, params.keys.sort
     assert_equal @service.id.to_s, flash[:hatena_after_service_id]
   end
-  
+
   test "はてな認証成功後、初回ログインならプロフィール作成画面へ" do
     any_instance_of(Hatena::API::Auth) do |klass|
       mock(klass).login('cert') {{'name' => 'new-user'}}
     end
-    
+
     assert_difference('OpenidUrl.count') do
       get :hatena_complete, {:cert => 'cert'}, nil, {:hatena_after_service_id => @service.id}
     end
-    
+
     assert_redirected_to :controller => :profiles, :action => :new, :service_id => @service.id
     assert session[:openid_url_id].present?
     assert_equal "http://www.hatena.ne.jp/new-user/", assigns(:openid_url).str
   end
-  
+
   test "はてな認証成功後、初めて使うサービスなら結びつけてから戻す" do
     @hatena_id = openid_urls(:hatena_id)
-    
+
     any_instance_of(Hatena::API::Auth) do |klass|
       mock(klass).login('cert') {{'name' => URI(@hatena_id.str).path.gsub('/', '')}}
     end
-    
+
     assert_no_difference('OpenidUrl.count') do
       assert_difference('ProfileService.count') do
         get :hatena_complete, {:cert => 'cert'}, nil, {:hatena_after_service_id => @service2.id}
       end
     end
-    
+
     assert_response :redirect
     assert /^#{@service2.auth_success}/ =~ response.location
-    assert ['id', 'key', 'timestamp', 'signature'].sort, 
+    assert ['id', 'key', 'timestamp', 'signature'].sort,
       CGI.parse(URI(response.location).query).keys.sort
   end
-  
+
   test "はてな認証成功後、使用済みサービスならそのまま戻す" do
     @hatena_id = openid_urls(:hatena_id)
-    
+
     any_instance_of(Hatena::API::Auth) do |klass|
       mock(klass).login('cert') {{'name' => URI(@hatena_id.str).path.gsub('/', '')}}
     end
-    
+
     assert_no_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
         get :hatena_complete, {:cert => 'cert'}, nil, {:hatena_after_service_id => @service.id}
       end
     end
-    
+
     assert_response :redirect
     assert /^#{@service.auth_success}/ =~ response.location
-    assert ['id', 'key', 'timestamp', 'signature'].sort, 
+    assert ['id', 'key', 'timestamp', 'signature'].sort,
       CGI.parse(URI(response.location).query).keys.sort
     assert_equal @hatena_id.profile.id, session[:login_profile_id]
     assert_equal @hatena_id.id, session[:openid_url_id]
   end
-  
+
   test "はてな認証失敗時は失敗としてサービスに戻す" do
     any_instance_of(Hatena::API::Auth) do |klass|
       mock(klass).login('cert') {
         raise Hatena::API::AuthError.new
       }
     end
-    
+
     assert_no_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
         get :hatena_complete, {:cert => 'cert'}, nil, {:hatena_after_service_id => @service.id}
       end
     end
-    
+
     assert_redirected_to @service.auth_fail
   end
-  
+
   test "ログアウト状態ならOpenIDを削除できない" do
     assert_no_difference('OpenidUrl.count') do
       delete :destroy, :id => @secondary_openid_url
     end
     assert_response :forbidden
   end
-  
+
   test "別のプロフィールのOpenIDは削除できない" do
     assert_no_difference('OpenidUrl.count') do
       delete :destroy, {:id => @others_openid_url}, {:login_profile_id => @profile.id}
     end
     assert_response :forbidden
   end
-  
+
   test "自分のプロフィールのOpenIDは削除できる" do
     assert_difference('OpenidUrl.count', -1) do
       delete :destroy, {:id => @secondary_openid_url}, {:login_profile_id => @profile.id}
     end
     assert_redirected_to :controller => :profiles, :action => :show
   end
-  
+
   test "自分のプライマリOpenIDは削除できない" do
     assert_no_difference('OpenidUrl.count') do
       delete :destroy, {:id => @primary_openid_url}, {:login_profile_id => @profile.id}
     end
     assert_redirected_to :controller => :profiles, :action => :show
   end
-  
+
   # ID追加
   test "authenticate?mode=id_append flashにモード記録、OPへ" do
     expected = mock_redirect_url
-    
-    post :login, 
-      {:openid_url => 'http://example.com/', :mode => 'id_append'}, 
+
+    post :login,
+      {:openid_url => 'http://example.com/', :mode => 'id_append'},
       {:login_profile_id => @profile.id}
-    
+
     assert_redirected_to expected
     assert_equal 'id_append', flash[:auth_mode]
   end
-  
+
   test "complete id_appendで、今回のIDがプロフィール作成済みならば再度ID入力を求める(ID追加ステップ1完了、2へ)" do
     mock_complete_response(nil, OpenID::Consumer::SUCCESS, @primary_openid_url.str)
     assert_no_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
-        get :complete, 
+        get :complete,
           @parameters,
           {}, # session
           {:auth_mode => 'id_append'} # flash
       end
     end
-    
+
     assert_redirected_to :controller => :profiles, :action => :authenticate, :mode => 'id_append'
   end
-  
+
   test "complete id_appendで、今回のIDが新規、5分以内に登録済みID認証が通っていればID追加" do
     mock_complete_response(nil, OpenID::Consumer::SUCCESS, 'http://www.example.com/new-user')
     assert_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
-        get :complete, 
+        get :complete,
           @parameters,
           {
-            :login_profile_id => @profile.id, 
-            :last_login => 4.minutes.ago.to_i, 
+            :login_profile_id => @profile.id,
+            :last_login => 4.minutes.ago.to_i,
             :openid_url_id => @primary_openid_url.id
           }, # session
           {:auth_mode => 'id_append'} # flash
       end
     end
-    
+
     assert_redirected_to :controller => :profiles, :action => :show
     assert_equal @profile, assigns(:openid_url).profile
   end
-  
+
   test "complete id_appendで、今回のIDが新規、登録済みID認証が通ってから5分以上経っていれば再度登録済みID入力を求める" do
     mock_complete_response(nil, OpenID::Consumer::SUCCESS, 'http://www.example.com/new-user')
     assert_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
-        get :complete, 
+        get :complete,
           @parameters,
           {
-            :login_profile_id => @profile.id, 
-            :last_login => 6.minutes.ago.to_i, 
+            :login_profile_id => @profile.id,
+            :last_login => 6.minutes.ago.to_i,
             :openid_url_id => @primary_openid_url.id
           }, # session
           {:auth_mode => 'id_append'} # flash
       end
     end
-    
+
     assert_redirected_to :controller => :profiles, :action => :authenticate, :mode => 'id_append'
     assert_nil session[:openid_url_id]
     assert_nil session[:last_login]
   end
-  
+
   test "complete id_appendで、今回のIDが新規、前に登録済みID認証が通っていなければ再度登録済みID入力を求める" do
     mock_complete_response(nil, OpenID::Consumer::SUCCESS, 'http://www.example.com/new-user')
     assert_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
-        get :complete, 
+        get :complete,
           @parameters,
           {:login_profile_id => @profile.id}, # session
           {:auth_mode => 'id_append'} # flash
       end
     end
-    
+
     assert_redirected_to :controller => :profiles, :action => :authenticate, :mode => 'id_append'
     assert_nil session[:openid_url_id]
     assert_nil session[:last_login]
   end
-  
+
   test "hatena_authenticate?mode=id_append flashにモード記録、はてなへ" do
     get :hatena_authenticate, :mode => 'id_append'
 
     assert_response :redirect
     assert_equal 'id_append', flash[:auth_mode]
   end
-  
+
   test "hatena_complete id_appendで、今回のIDがプロフィール作成済みならば再度ID入力を求める(ID追加ステップ1完了、2へ)" do
     @hatena_id = openid_urls(:hatena_id)
-    
+
     any_instance_of(Hatena::API::Auth) do |klass|
       mock(klass).login('cert') {{'name' => URI(@hatena_id.str).path.gsub('/', '')}}
     end
-    
+
     assert_no_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
-        get :hatena_complete, 
-          {:cert => 'cert'}, 
+        get :hatena_complete,
+          {:cert => 'cert'},
           {
-            :login_profile_id => @profile.id, 
-            :last_login => 4.minutes.ago.to_i, 
+            :login_profile_id => @profile.id,
+            :last_login => 4.minutes.ago.to_i,
             :openid_url_id => @primary_openid_url.id
-          }, 
+          },
           {:auth_mode => 'id_append'}
       end
     end
-    
+
     assert_redirected_to :controller => :profiles, :action => :authenticate, :mode => 'id_append'
     assert_equal @hatena_id.profile.id, session[:login_profile_id]
     assert_equal @hatena_id.id, session[:openid_url_id]
   end
-  
+
   test "hatena_complete id_appendで、今回のIDが新規、5分以内に登録済みID認証が通っていればID追加" do
     any_instance_of(Hatena::API::Auth) do |klass|
       mock(klass).login('cert') {{'name' => 'new-user'}}
     end
-    
+
     assert_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
-        get :hatena_complete, 
-          {:cert => 'cert'}, 
+        get :hatena_complete,
+          {:cert => 'cert'},
           {
-            :login_profile_id => @profile.id, 
-            :last_login => 4.minutes.ago.to_i, 
+            :login_profile_id => @profile.id,
+            :last_login => 4.minutes.ago.to_i,
             :openid_url_id => @primary_openid_url.id
-          }, 
+          },
           {:auth_mode => 'id_append'}
       end
     end
-    
+
     assert_redirected_to :controller => :profiles, :action => :show
     assert_equal @profile, assigns(:openid_url).profile
   end
-  
+
   test "hatena_complete id_appendで、今回のIDが新規、登録済みID認証が通ってから5分以上経っていれば再度登録済みID入力を求める" do
     any_instance_of(Hatena::API::Auth) do |klass|
       mock(klass).login('cert') {{'name' => 'new-user'}}
     end
-    
+
     assert_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
-        get :hatena_complete, 
-          {:cert => 'cert'}, 
+        get :hatena_complete,
+          {:cert => 'cert'},
           {
-            :login_profile_id => @profile.id, 
-            :last_login => 6.minutes.ago.to_i, 
+            :login_profile_id => @profile.id,
+            :last_login => 6.minutes.ago.to_i,
             :openid_url_id => @primary_openid_url.id
-          }, 
+          },
           {:auth_mode => 'id_append'}
       end
     end
-    
+
     assert_redirected_to :controller => :profiles, :action => :authenticate, :mode => 'id_append'
   end
-  
+
   test "hatena_complete id_appendで、今回のIDが新規、前に登録済みID認証が通っていなければ再度登録済みID入力を求める" do
     any_instance_of(Hatena::API::Auth) do |klass|
       mock(klass).login('cert') {{'name' => 'new-user'}}
     end
-    
+
     assert_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
-        get :hatena_complete, 
-          {:cert => 'cert'}, 
-          {:login_profile_id => @profile.id}, 
+        get :hatena_complete,
+          {:cert => 'cert'},
+          {:login_profile_id => @profile.id},
           {:auth_mode => 'id_append'}
       end
     end
-    
+
     assert_redirected_to :controller => :profiles, :action => :authenticate, :mode => 'id_append'
     assert_nil session[:openid_url_id]
     assert_nil session[:last_login]
   end
-end
 
+  test "Google OpenID Connect認証開始を叩くとGoogleへリダイレクトする" do
+    destination = 'https://path.to/openid_connect_authenticate'
+    any_instance_of(OpenIDConnect) do |klass|
+      mock(klass).authentication_url('openid', root_url) { destination }
+    end
+
+    get :openid_connect_authenticate, :service_id => @service.id
+
+    assert_redirected_to destination
+    assert_equal @service.id.to_s, flash[:openid_connect_after_service_id]
+  end
+
+  test "Google OpenID Connect認証成功後、初回ログインならプロフィール作成画面へ" do
+    mock_openid_connect_response(@parameters['openid.identity'])
+
+    assert_difference('OpenidUrl.count') do
+      get :openid_connect_complete, {}, nil, {:openid_connect_after_service_id => @service.id}
+    end
+
+    assert_redirected_to :controller => :profiles, :action => :new, :service_id => @service.id
+    assert session[:openid_url_id].present?
+    assert_equal @parameters['openid.identity'], assigns(:openid_url).str
+  end
+
+  test "Google OpenID Connect認証成功後、初めて使うサービスなら結びつけてから戻す" do
+    mock_openid_connect_response(@primary_openid_url.str)
+
+    assert_no_difference("OpenidUrl.count") do
+      assert_difference("ProfileService.count") do
+        get :openid_connect_complete, {}, nil, {:openid_connect_after_service_id => @service2.id}
+      end
+    end
+    assert_response :redirect
+    assert /^#{@service2.auth_success}/ =~ response.location
+    assert ['id', 'key', 'timestamp', 'signature'].sort,
+      CGI.parse(URI(response.location).query).keys.sort
+  end
+
+  test "Google OpenID Connect認証成功後、使用済みサービスならそのまま戻す" do
+    mock_openid_connect_response(@primary_openid_url.str)
+
+    assert_no_difference("OpenidUrl.count") do
+      assert_no_difference("ProfileService.count") do
+        get :openid_connect_complete, {}, nil, {:openid_connect_after_service_id => @service.id}
+      end
+    end
+    assert_response :redirect
+    assert /^#{@service.auth_success}/ =~ response.location
+    assert ['id', 'key', 'timestamp', 'signature'].sort,
+      CGI.parse(URI(response.location).query).keys.sort
+    assert_equal @primary_openid_url.profile.id, session[:login_profile_id]
+  end
+
+  test "Google OpenID Connect認証失敗時には失敗としてサービスに戻す" do
+    any_instance_of(OpenIDConnect) do |klass|
+      mock(klass).authentication_result({"controller"=>"openid_urls", "action"=>"openid_connect_complete"}) { raise OpenIDConnect::CancelError.new }
+    end
+
+    assert_no_difference('OpenidUrl.count') do
+      assert_no_difference('ProfileService.count') do
+        get :openid_connect_complete, {}, nil, {:openid_connect_after_service_id => @service.id}
+      end
+    end
+
+    assert_redirected_to @service.auth_fail
+  end
+end

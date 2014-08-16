@@ -46,6 +46,8 @@ gem 'log4r'
 gem 'uuidtools'
 gem 'ruby-openid'
 gem 'hatenaapiauth'
+gem 'google-id-token'
+gem 'jwt', '~> 0.1'
 gem 'tlsmail'
 gem 'opal-rails', '0.6.1'
 gem 'activerecord-session_store', :github => 'rails/activerecord-session_store'
@@ -58,4 +60,3 @@ group :test do
   gem 'webmock'
   gem 'rr', :require => false
 end
-

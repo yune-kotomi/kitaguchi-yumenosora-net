@@ -11,16 +11,14 @@ Document.ready? do
   ({
     'livedoor' => 'http://livedoor.com',
     'mixi' => 'https://mixi.jp',
-    'google' => 'https://www.google.com/accounts/o8/id',
     'yahoojp' => 'yahoo.co.jp'
   }).each do |key, openid|
     Element.find("##{key}").on('click') do
       login_with(openid)
     end
   end
-  
+
   Element.find('#submit').on('click') do
     Element.find('#openid-form form').submit
   end
 end
-

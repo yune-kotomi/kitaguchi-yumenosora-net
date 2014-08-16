@@ -1,6 +1,8 @@
+require 'openid-connect'
+
 class OpenidUrlsController < ApplicationController
   before_filter :login_required, :only => [:destroy]
-  
+
   def login
     begin
       openid_url = params[:openid_url].gsub("#", "%23")
@@ -10,16 +12,16 @@ class OpenidUrlsController < ApplicationController
 
       url = request.redirect_url(trust_root, return_to)
       redirect_to(url)
-      
+
       flash[:auth_mode] = params[:mode]
-      
+
     rescue OpenID::OpenIDError, OpenID::DiscoveryFailure
       flash[:notice] = "認証に失敗しました"
       flash[:service_id] = params[:service_id]
       redirect_to profile_authenticate_path
     end
   end
-  
+
   def complete
     current_url = url_for(:only_path => false, :service_id => params[:service_id])
     parameters = params.reject{ |k,v| request.path_parameters[k] or request.path_parameters[k.to_sym] }
@@ -31,11 +33,11 @@ class OpenidUrlsController < ApplicationController
     rescue ActiveRecord::RecordNotFound
       # do nothing
     end
-    
+
     case response.status
     when OpenID::Consumer::SUCCESS
       identity_retrieved_after(response.identity_url)
-      
+
     else
       if @service.present?
         redirect_to @service.auth_fail
@@ -45,15 +47,15 @@ class OpenidUrlsController < ApplicationController
       end
     end
   end
-  
+
   # DELETE /openid_urls/1
   # DELETE /openid_urls/1.json
   def destroy
     @openid_url = OpenidUrl.find(params[:id])
-    
+
     if @login_profile == @openid_url.profile
       @openid_url.destroy unless @openid_url.primary_openid
-      
+
       respond_to do |format|
         format.html { redirect_to profile_path }
       end
@@ -61,16 +63,16 @@ class OpenidUrlsController < ApplicationController
       forbidden
     end
   end
-  
+
   def hatena_authenticate
     flash[:hatena_after_service_id] = params[:service_id]
     flash[:auth_mode] = params[:mode]
     redirect_to hatena.uri_to_login.to_s
   end
-  
+
   def hatena_complete
     @service = Service.where(:id => flash[:hatena_after_service_id]).first
-    
+
     begin
       user_info = hatena.login(params[:cert])
       openid_url = "http://www.hatena.ne.jp/#{user_info['name']}/"
@@ -86,6 +88,32 @@ class OpenidUrlsController < ApplicationController
     end
   end
 
+  def openid_connect_authenticate
+    flash[:openid_connect_after_service_id] = params[:service_id]
+    oc = OpenIDConnect.new(session, openid_connect_callback_url)
+    redirect_to oc.authentication_url('openid', root_url)
+  end
+
+  def openid_connect_complete
+    @service = Service.find(flash[:openid_connect_after_service_id])
+
+    oc = OpenIDConnect.new(session, openid_connect_callback_url)
+
+    @result = oc.authentication_result(params)
+    @payload = oc.parse_id_token(@result)
+    openid_url = @payload['openid_id']
+
+    identity_retrieved_after(openid_url)
+
+rescue OpenIDConnect::CancelError, OpenIDConnect::InvalidTokenError, OpenIDConnect::ExchangeError, OpenIDConnect::IdTokenError => e
+    if @service.present?
+      redirect_to @service.auth_fail
+    else
+      flash[:notice] = "認証できませんでした。"
+      redirect_to :controller => :profiles, :action => :authenticate
+    end
+  end
+
   private
   # OpenID::Consumerオブジェクトを取得
   def consumer
@@ -94,17 +122,17 @@ class OpenidUrlsController < ApplicationController
       store = OpenID::Store::Filesystem.new(dir)
       @consumer = OpenID::Consumer.new(session, store)
     end
-    
+
     return @consumer
   end
-  
+
   def hatena
     Hatena::API::Auth.new(
       :api_key => Hotarugaike::Application.config.hatenaapiauth_key,
       :secret => Hotarugaike::Application.config.hatenaapiauth_secret
     )
   end
-  
+
   def identity_retrieved_after(identity_url)
     #ログイン完了
     @openid_url = OpenidUrl.where(:str => identity_url).first
@@ -112,7 +140,7 @@ class OpenidUrlsController < ApplicationController
       @openid_url = OpenidUrl.new(:str => identity_url)
       @openid_url.save
     end
-    
+
     if flash[:auth_mode] == 'id_append'
       # ID追加処理
       if @openid_url.profile.present?
@@ -139,15 +167,15 @@ class OpenidUrlsController < ApplicationController
           redirect_to :controller => :profiles, :action => :authenticate, :mode => 'id_append'
         end
       end
-      
+
     else
       # ログイン処理
       session[:openid_url_id] = @openid_url.id
       session[:last_login] = Time.now.to_i
       if @openid_url.profile.nil?
         flash[:notice] = "ログイン完了しました。"
-        redirect_to :controller => :profiles, 
-          :action => :new, 
+        redirect_to :controller => :profiles,
+          :action => :new,
           :service_id => @service.id
 
       else
@@ -156,7 +184,7 @@ class OpenidUrlsController < ApplicationController
           deliver_to_service(@service, @openid_url.profile)
         else
           redirect_to :controller => :profiles,
-            :action => :show, 
+            :action => :show,
             :id => @openid_url.profile.id
         end
       end

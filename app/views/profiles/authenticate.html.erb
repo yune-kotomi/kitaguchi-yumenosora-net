@@ -25,12 +25,14 @@
         </div>
       <% end %>
     </div>
-    
+
     <ul class="menu">
       <li><%= link_to 'はてなID', hatena_login_path(:service_id => (if @service.present?; @service.id; else; nil; end), :mode => params[:mode]) %></li>
       <li id="livedoor">livedoor ID</li>
       <li id="mixi">mixi OpenID</li>
-      <li id="google">Googleアカウント</li>
+      <li>
+        <%= link_to 'Googleアカウント', openid_connect_authenticate_path(:service_id => (if @service.present?; @service.id; else; nil; end)) %>
+      </li>
       <li id="yahoojp">Yahoo! JAPAN ID</li>
       <li data-destination="#openid-form">その他のOpenID</li>
     </ul>
@@ -48,11 +50,10 @@
           <%= text_field_tag :openid_url %>
         </div>
       </div>
-      
+
       <ul class="menu">
         <li id="submit">ログイン</li>
       </ul>
     <% end %>
   <% end %>
 </div>
-

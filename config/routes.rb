@@ -2,10 +2,20 @@ Hotarugaike::Application.routes.draw do
   get 'profile/retrieve', :controller => :auth_tickets, :action => :show
 
   resources :openid_urls, :only => [:destroy]
-  post 'openid_urls/login', :controller => :openid_urls, :action => :login
-  get 'openid_urls/complete(/:service_id)', :controller => :openid_urls, :action => :complete
-  get 'hatena/login' => 'openid_urls#hatena_authenticate'
-  get 'hatena/complete' => 'openid_urls#hatena_complete'
+  post 'openid_urls/login',
+    :controller => :openid_urls, :action => :login
+  get 'openid_urls/complete(/:service_id)',
+    :controller => :openid_urls, :action => :complete
+
+  get 'hatena/login' =>
+    'openid_urls#hatena_authenticate'
+  get 'hatena/complete' =>
+    'openid_urls#hatena_complete'
+
+  get 'openid_connect/authenticate' =>
+    'openid_urls#openid_connect_authenticate'
+  get 'openid_connect/callback' =>
+    'openid_urls#openid_connect_complete'
 
   resources :services
 
@@ -53,7 +63,7 @@ Hotarugaike::Application.routes.draw do
   #       get 'recent', on: :collection
   #     end
   #   end
-  
+
   # Example resource route with concerns:
   #   concern :toggleable do
   #     post 'toggle'
