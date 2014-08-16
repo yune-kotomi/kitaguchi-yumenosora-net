@@ -7,10 +7,8 @@ Hotarugaike::Application.routes.draw do
   get 'openid_urls/complete(/:service_id)',
     :controller => :openid_urls, :action => :complete
 
-  get 'hatena/login' =>
-    'openid_urls#hatena_authenticate'
-  get 'hatena/complete' =>
-    'openid_urls#hatena_complete'
+  get 'hatena/login' => 'hatena#authenticate'
+  get 'hatena/complete' => 'hatena#complete'
 
   get 'openid_connect/authenticate' =>
     'google_openid_connect#authenticate'
