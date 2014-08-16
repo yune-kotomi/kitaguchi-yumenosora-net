@@ -13,9 +13,9 @@ Hotarugaike::Application.routes.draw do
     'openid_urls#hatena_complete'
 
   get 'openid_connect/authenticate' =>
-    'openid_urls#openid_connect_authenticate'
+    'google_openid_connect#authenticate'
   get 'openid_connect/callback' =>
-    'openid_urls#openid_connect_complete'
+    'google_openid_connect#complete'
 
   resources :services
 

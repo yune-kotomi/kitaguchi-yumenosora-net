@@ -88,32 +88,6 @@ class OpenidUrlsController < ApplicationController
     end
   end
 
-  def openid_connect_authenticate
-    flash[:openid_connect_after_service_id] = params[:service_id]
-    oc = OpenIDConnect.new(session, openid_connect_callback_url)
-    redirect_to oc.authentication_url('openid', root_url)
-  end
-
-  def openid_connect_complete
-    @service = Service.find(flash[:openid_connect_after_service_id])
-
-    oc = OpenIDConnect.new(session, openid_connect_callback_url)
-
-    @result = oc.authentication_result(params)
-    @payload = oc.parse_id_token(@result)
-    openid_url = @payload['openid_id']
-
-    identity_retrieved_after(openid_url)
-
-rescue OpenIDConnect::CancelError, OpenIDConnect::InvalidTokenError, OpenIDConnect::ExchangeError, OpenIDConnect::IdTokenError => e
-    if @service.present?
-      redirect_to @service.auth_fail
-    else
-      flash[:notice] = "認証できませんでした。"
-      redirect_to :controller => :profiles, :action => :authenticate
-    end
-  end
-
   private
   # OpenID::Consumerオブジェクトを取得
   def consumer
@@ -131,63 +105,5 @@ rescue OpenIDConnect::CancelError, OpenIDConnect::InvalidTokenError, OpenIDConne
       :api_key => Hotarugaike::Application.config.hatenaapiauth_key,
       :secret => Hotarugaike::Application.config.hatenaapiauth_secret
     )
-  end
-
-  def identity_retrieved_after(identity_url)
-    #ログイン完了
-    @openid_url = OpenidUrl.where(:str => identity_url).first
-    if @openid_url.nil?
-      @openid_url = OpenidUrl.new(:str => identity_url)
-      @openid_url.save
-    end
-
-    if flash[:auth_mode] == 'id_append'
-      # ID追加処理
-      if @openid_url.profile.present?
-        # ID追加処理第1段階
-        session[:login_profile_id] = @openid_url.profile.id
-        session[:openid_url_id] = @openid_url.id
-        session[:last_login] = Time.now.to_i
-        flash[:auth_mode] = 'id_append'
-        redirect_to :controller => :profiles, :action => :authenticate, :mode => 'id_append'
-      else
-        begin
-          previous_openid_url = OpenidUrl.find(session[:openid_url_id])
-          if Time.at(session[:last_login]) > 5.minutes.ago and previous_openid_url.profile.present?
-            @openid_url.update_attribute(:profile_id, previous_openid_url.profile.id)
-            redirect_to :controller => :profiles, :action => :show
-          else
-            # 時間たち過ぎかID追加対象のプロフィールが存在しないのでやり直し
-            session[:openid_url_id] = nil
-            session[:last_login] = nil
-            redirect_to :controller => :profiles, :action => :authenticate, :mode => 'id_append'
-          end
-        rescue ActiveRecord::RecordNotFound
-          # 前にログインに使用したOpenIDがDBに存在しないのでやりなおし
-          redirect_to :controller => :profiles, :action => :authenticate, :mode => 'id_append'
-        end
-      end
-
-    else
-      # ログイン処理
-      session[:openid_url_id] = @openid_url.id
-      session[:last_login] = Time.now.to_i
-      if @openid_url.profile.nil?
-        flash[:notice] = "ログイン完了しました。"
-        redirect_to :controller => :profiles,
-          :action => :new,
-          :service_id => @service.id
-
-      else
-        session[:login_profile_id] = @openid_url.profile.id
-        if @service.present?
-          deliver_to_service(@service, @openid_url.profile)
-        else
-          redirect_to :controller => :profiles,
-            :action => :show,
-            :id => @openid_url.profile.id
-        end
-      end
-    end
   end
 end
