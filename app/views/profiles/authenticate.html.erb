@@ -1,59 +1,63 @@
 <% @title = "ログイン" %>
-<% content_for :breadcrumb do %>
-  <% if @service.present? %><li><%= link_to @service.title, @service.root %></li><% end %>
-<% end %>
 <% content_for :head do -%>
   <%= javascript_include_tag "authenticate" %>
 <% end %>
 
-<div class="column half">
-  <%= render :layout => '/shared/column', :locals => {:id => 'login', :title => 'ログイン'} do %>
-    <div class="content">
-      <% if params[:mode] == 'id_append' %>
-        <h2>プロフィールに新しいOpenIDを追加します</h2>
-        <div>
-          <% if Time.at(session[:last_login].to_i) > 5.minutes.ago %>
-            続いて、追加したいIDでログインしてください。
-          <% else %>
-            最初に、現在使っているIDでログインしてください。
-          <% end %>
+<div class="container" style="margin-top: 1em;">
+  <% if params[:mode] == 'id_append' %>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">プロフィールに新しいIDを追加します</h3>
+      </div>
+      <div class="panel-body">
+        <% if Time.at(session[:last_login].to_i) > 5.minutes.ago %>
+          続いて、追加したいIDでログインしてください。
+        <% else %>
+          最初に、現在使っているIDでログインしてください。
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">ログインに使用するIDを選択してください</h3>
+      </div>
+      <div class="panel-body">
+        本サービスでは独自のID/パスワードを使用する代わりに、
+        他サービスによる認証を使ってログインを行います。
+      </div>
+    </div>
+  <% end %>
+
+  <%= link_to 'はてなID', hatena_login_path(:service_id => (if @service.present?; @service.id; else; nil; end), :mode => params[:mode]), {:class => 'btn btn-default', :role => "button"} %>
+  <button id="livedoor" class="btn btn-default">livedoor ID</button>
+  <button id="mixi" class="btn btn-default">mixi OpenID</button>
+  <%= link_to 'Googleアカウント', openid_connect_authenticate_path(:service_id => (if @service.present?; @service.id; else; nil; end), :mode => params[:mode]), {:class => 'btn btn-default'} %>
+  <button id="yahoojp" class="btn btn-default">Yahoo! JAPAN ID</button>
+  <button id="other-openid" class="btn btn-default" data-toggle="modal" data-target="#openid-form">その他のOpenID</button>
+</div>
+
+<div class="modal fade" id="openid-form">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title">上記以外のOpenIDを使用する場合は以下に入力してください</h4>
+      </div>
+      <%= form_tag openid_urls_login_path do %>
+        <div class="modal-body">
+          <div class="form-group">
+            <%= hidden_field_tag 'service_id', @service.id if @service.present? %>
+            <%= hidden_field_tag 'mode', params[:mode] %>
+            <label for="openid_url">OpenID URL</label>
+            <%= text_field_tag :openid_url, '', :class => "form-control", :placeholder => "http://www.example.com/" %>
+          </div>
         </div>
-      <% else %>
-        <h2>ログインに使用するIDを選択してください</h2>
-        <div>
-          本サービスでは独自のID/パスワードを使用する代わりに、OpenIDによる認証を使ってログインを行います。
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">キャンセル</button>
+          <button type="submit" class="btn btn-primary">ログイン</button>
         </div>
       <% end %>
-    </div>
-
-    <ul class="menu">
-      <li><%= link_to 'はてなID', hatena_login_path(:service_id => (if @service.present?; @service.id; else; nil; end), :mode => params[:mode]) %></li>
-      <li id="livedoor">livedoor ID</li>
-      <li id="mixi">mixi OpenID</li>
-      <li>
-        <%= link_to 'Googleアカウント', openid_connect_authenticate_path(:service_id => (if @service.present?; @service.id; else; nil; end), :mode => params[:mode]) %>
-      </li>
-      <li id="yahoojp">Yahoo! JAPAN ID</li>
-      <li data-destination="#openid-form">その他のOpenID</li>
-    </ul>
-  <% end %>
-</div>
-
-<div class="column half">
-  <%= render :layout => '/shared/column', :locals => {:id => 'openid-form', :title => 'その他のOpenID'} do %>
-    <%= form_tag openid_urls_login_path do %>
-      <div class="content">
-        <%= hidden_field_tag 'service_id', @service.id if @service.present? %>
-        <%= hidden_field_tag 'mode', params[:mode] %>
-        <div class="input-field">
-          <label for="openid_url">OpenID URL</label>
-          <%= text_field_tag :openid_url %>
-        </div>
-      </div>
-
-      <ul class="menu">
-        <li id="submit">ログイン</li>
-      </ul>
-    <% end %>
-  <% end %>
-</div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

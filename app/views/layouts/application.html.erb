@@ -1,56 +1,23 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title><%= @title %>: <%= if @service;@service.title; else; Hotarugaike::Application.config.title;end %></title>
-  <meta name="viewport" content="width=device-width">
-  <%= stylesheet_link_tag    "application", :media => "all" %>
-  <%= csrf_meta_tags %>
-  <%= javascript_include_tag "application" %>
-  <%= yield :head %>
-</head>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= @title %>: <%= if @service;@service.title; else; Hotarugaike::Application.config.title;end %></title>
 
-<body 
-  data-base-url="<%= url_for root_path(:only_path => false) %>"
-  data-rails-env="<%= Rails.env.to_s %>">
+    <%= stylesheet_link_tag    "application", :media => "all" %>
+    <%= csrf_meta_tags %>
+    <%= javascript_include_tag "application" %>
+    <%= yield :head %>
+  </head>
 
-  <div id="header" class="clearfix">
-    <div class="banner">
+  <body data-base-url="<%= url_for root_path(:only_path => false) %>" data-rails-env="<%= Rails.env.to_s %>">
+    <div id="header" class="container">
       <%= link_to image_tag('logo.png'), "/" unless @service %>
       <%= link_to image_tag(@service.logo), @service.root if @service %>
     </div>
-    <div class="breadcrumb clearfix">
-      <ul>
-        <%= yield :breadcrumb %>
-      </ul>
-    </div>
-  </div>
-  
-  
-  <div class="container clearfix <%= params[:controller] %>" id="content">
-    <%= yield %>
-    
-    <ul id="column-back" class="menu" style="display:none">
-      <li class="back notransition">戻る</li>
-    </ul>
-  </div>
 
-  <script id="ojikoen-ui-dialog-template" type="text/x-jquery-tmpl">
-  <div>
-    <div class="overlay" style="display:none"></div>
-    <div class="ojikoen-ui-dialog" style="display:none">
-      <div class="title">${title}</div>
-      <div class="message">${message}</div>
-      
-      <div class="input">
-        <input type="text" value="${value}">
-      </div>
-      
-      <div class="buttons clearfix">
-        <button class="cancel">${cancel}</button>
-        <button class="ok">${ok}</button>
-      </div>
-    </div>
-  </div>
-  </script>
-</body>
+    <%= yield %>
+  </body>
 </html>

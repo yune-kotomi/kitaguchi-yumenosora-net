@@ -4,10 +4,6 @@ def login_with(openid)
 end
 
 Document.ready? do
-  Element.find('#livedoor,#mixi,#google,#yahoojp,#submit').on('click') do
-    Ojikoen::UI::Column.scroll_forward
-  end
-
   ({
     'livedoor' => 'http://livedoor.com',
     'mixi' => 'https://mixi.jp',
@@ -16,9 +12,5 @@ Document.ready? do
     Element.find("##{key}").on('click') do
       login_with(openid)
     end
-  end
-
-  Element.find('#submit').on('click') do
-    Element.find('#openid-form form').submit
   end
 end
