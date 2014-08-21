@@ -15,7 +15,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
     @primary_openid_url = openid_urls(:profile_one_primary)
   end
 
-  test "Google OpenID Connect認証開始を叩くとGoogleへリダイレクトする" do
+  test "認証開始を叩くとGoogleへリダイレクトする" do
     destination = 'https://path.to/openid_connect_authenticate'
     any_instance_of(OpenIDConnect) do |klass|
       mock(klass).authentication_url('openid', root_url) { destination }
@@ -27,7 +27,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
     assert_equal @service.id.to_s, flash[:openid_connect_after_service_id]
   end
 
-  test "Google OpenID Connect認証成功後、初回ログインならプロフィール作成画面へ" do
+  test "認証成功後、初回ログインならプロフィール作成画面へ" do
     mock_openid_connect_response("http://example.com/user")
 
     assert_difference('OpenidUrl.count') do
@@ -41,7 +41,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
     assert_equal "http://example.com/user", assigns(:openid_url).str
   end
 
-  test "Google OpenID Connect認証成功後、初めて使うサービスなら結びつけてから戻す" do
+  test "認証成功後、初めて使うサービスなら結びつけてから戻す" do
     mock_openid_connect_response(@primary_openid_url.str)
 
     assert_no_difference("OpenidUrl.count") do
@@ -55,7 +55,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
       CGI.parse(URI(response.location).query).keys.sort
   end
 
-  test "Google OpenID Connect認証成功後、使用済みサービスならそのまま戻す" do
+  test "認証成功後、使用済みサービスならそのまま戻す" do
     mock_openid_connect_response(@primary_openid_url.str)
 
     assert_no_difference("OpenidUrl.count") do
@@ -70,7 +70,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
     assert_equal @primary_openid_url.profile.id, session[:login_profile_id]
   end
 
-  test "Google OpenID Connect認証失敗時には失敗としてサービスに戻す" do
+  test "認証失敗時には失敗としてサービスに戻す" do
     any_instance_of(OpenIDConnect) do |klass|
       mock(klass).authentication_result({"controller"=>"google_openid_connect", "action"=>"complete"}) { raise OpenIDConnect::CancelError.new }
     end
