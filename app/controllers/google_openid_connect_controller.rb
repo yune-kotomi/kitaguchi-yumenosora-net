@@ -3,12 +3,14 @@ require 'openid-connect'
 class GoogleOpenidConnectController < ApplicationController
   def authenticate
     flash[:openid_connect_after_service_id] = params[:service_id]
+    flash[:auth_mode] = params[:mode]
+
     oc = OpenIDConnect.new(session, openid_connect_callback_url)
     redirect_to oc.authentication_url('openid', root_url)
   end
 
   def complete
-    @service = Service.find(flash[:openid_connect_after_service_id])
+    @service = Service.where(:id => flash[:openid_connect_after_service_id]).first
 
     oc = OpenIDConnect.new(session, openid_connect_callback_url)
 

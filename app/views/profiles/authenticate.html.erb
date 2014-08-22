@@ -31,7 +31,7 @@
       <li id="livedoor">livedoor ID</li>
       <li id="mixi">mixi OpenID</li>
       <li>
-        <%= link_to 'Googleアカウント', openid_connect_authenticate_path(:service_id => (if @service.present?; @service.id; else; nil; end)) %>
+        <%= link_to 'Googleアカウント', openid_connect_authenticate_path(:service_id => (if @service.present?; @service.id; else; nil; end), :mode => params[:mode]) %>
       </li>
       <li id="yahoojp">Yahoo! JAPAN ID</li>
       <li data-destination="#openid-form">その他のOpenID</li>

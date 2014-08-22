@@ -13,6 +13,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
     @service = services(:one)
     @service2 = services(:two)
     @primary_openid_url = openid_urls(:profile_one_primary)
+    @profile = profiles(:one)
   end
 
   test "認証開始を叩くとGoogleへリダイレクトする" do
@@ -82,5 +83,98 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to @service.auth_fail
+  end
+
+  test "modeが指定されたらflashに保存してGoogleへリダイレクト" do
+    destination = 'https://path.to/openid_connect_authenticate'
+    any_instance_of(OpenIDConnect) do |klass|
+      mock(klass).authentication_url('openid', root_url) { destination }
+    end
+
+    get :authenticate, :service_id => @service.id, :mode => 'id_append'
+
+    assert_redirected_to destination
+    assert_equal 'id_append', flash[:auth_mode]
+  end
+
+  test "id_appendで、今回のIDがプロフィール作成済みならば再度ID入力を求める(ID追加ステップ1完了、2へ)" do
+    mock_openid_connect_response(@primary_openid_url.str)
+
+    assert_no_difference("OpenidUrl.count") do
+      assert_no_difference("ProfileService.count") do
+        get :complete,
+          {},
+          {
+            :login_profile_id => @profile.id,
+            :last_login => 4.minutes.ago.to_i,
+            :openid_url_id => @primary_openid_url.id
+          },
+          {:auth_mode => 'id_append'}
+      end
+    end
+
+    assert_redirected_to :controller => :profiles,
+      :action => :authenticate,
+      :mode => 'id_append'
+    assert_equal @primary_openid_url.profile.id, session[:login_profile_id]
+    assert_equal @primary_openid_url.id, session[:openid_url_id]
+  end
+
+  test "id_appendで、今回のIDが新規、5分以内に登録済みID認証が通っていればID追加" do
+    mock_openid_connect_response("http://example.com/user")
+
+    assert_difference('OpenidUrl.count') do
+      assert_no_difference('ProfileService.count') do
+        get :complete,
+          {},
+          {
+            :login_profile_id => @profile.id,
+            :last_login => 4.minutes.ago.to_i,
+            :openid_url_id => @primary_openid_url.id
+          },
+          {:auth_mode => 'id_append'}
+      end
+    end
+
+    assert_redirected_to :controller => :profiles, :action => :show
+    assert_equal @profile, assigns(:openid_url).profile
+  end
+
+  test "id_appendで、今回のIDが新規、登録済みID認証が通ってから5分以上経っていれば再度登録済みID入力を求める" do
+    mock_openid_connect_response("http://example.com/user")
+
+    assert_difference('OpenidUrl.count') do
+      assert_no_difference('ProfileService.count') do
+        get :complete,
+          {},
+          {
+            :login_profile_id => @profile.id,
+            :last_login => 6.minutes.ago.to_i,
+            :openid_url_id => @primary_openid_url.id
+          },
+          {:auth_mode => 'id_append'}
+      end
+    end
+
+    assert_redirected_to :controller => :profiles,
+      :action => :authenticate,
+      :mode => 'id_append'
+  end
+
+  test "id_appendで、今回のIDが新規、前に登録済みID認証が通っていなければ再度登録済みID入力を求める" do
+    mock_openid_connect_response("http://example.com/user")
+
+    assert_difference('OpenidUrl.count') do
+      assert_no_difference('ProfileService.count') do
+        get :complete,
+          {},
+          {:login_profile_id => @profile.id},
+          {:auth_mode => 'id_append'}
+      end
+    end
+
+    assert_redirected_to :controller => :profiles, :action => :authenticate, :mode => 'id_append'
+    assert_nil session[:openid_url_id]
+    assert_nil session[:last_login]
   end
 end
