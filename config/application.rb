@@ -19,6 +19,7 @@ require 'hatena/api/auth'
 
 module Hotarugaike
   class Application < Rails::Application
+    config.assets.paths << "#{Rails}/vender/assets/fonts"
     config.title = 'Hotarugaike'
     config.time_zone = 'Sapporo'
     config.i18n.default_locale = 'ja'
@@ -26,4 +27,3 @@ module Hotarugaike
     config.filter_parameters += [:password]
   end
 end
-
