@@ -51,7 +51,7 @@
     </ul>
 
     <%= link_to '新しいOpenIDを追加する', profile_authenticate_path(:mode => 'id_append'), :class => 'btn btn-default' %>
-    <%= link_to "#{@service.title}へ戻る", back_from_profile(@service, @login_profile), :class => 'btn btn-default' %>
+    <%= link_to "#{@service.title}へ戻る", back_from_profile(@service, @login_profile), :class => 'btn btn-default' if @service.present? %>
   </div>
 </div>
 
