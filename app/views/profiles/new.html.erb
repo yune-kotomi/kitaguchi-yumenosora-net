@@ -1,29 +1,30 @@
 <% @title = "新規プロフィール作成" %>
-<% content_for :breadcrumb do %>
-  <% if @service.present? %><li><%= link_to @service.title, @service.root %></li><% end %>
-<% end %>
 <% content_for :head do -%>
   <%= javascript_include_tag "new_profile" %>
 <% end %>
 
-<div class="column half">
-  <%= render :layout => '/shared/column', :locals => {:id => 'new-profile', :title => '新規プロフィール作成'} do %>
-    <% if @profile.errors.any? %>
-      <div class="content">
-        <h2>入力にエラーがあります</h2>
-        <div>
-          <ul>
-          <% @profile.errors.full_messages.each do |msg| %>
-            <li><%= msg %></li>
-          <% end %>
-          </ul>
-        </div>
+<div class="container" style="margin-top: 1em;">
+  <% if @profile.errors.any? %>
+    <div class="panel panel-warning">
+      <div class="panel-heading">
+        <h3 class="panel-title">入力にエラーがあります</h3>
       </div>
-    <% end %>
-    
-    <% if ['www.google.com','me.yahoo.co.jp'].include?(@openid_url.domain_name) %>
-      <div class="content">
-        <h2>ユーザ登録済みにも関わらずこの画面が出る場合</h2>
+      <div class="panel-body">
+        <ul>
+        <% @profile.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+        </ul>
+      </div>
+    </div>
+  <% end %>
+
+  <% if ['www.google.com','me.yahoo.co.jp'].include?(@openid_url.domain_name) %>
+    <div class="panel panel-warning">
+      <div class="panel-heading">
+        <h3 class="panel-title">ユーザ登録済みにも関わらずこの画面が出る場合</h3>
+      </div>
+      <div class="panel-body">
         <p>
           他のOpenIDでユーザ登録済みではありませんか？<br>
           その場合はそのOpenIDでログイン後、プロフィールの編集画面からこのOpenIDを追加することができます。
@@ -33,28 +34,22 @@
           <%= link_to '「雨上がりの青空を探して」 Twitterアカウント', "https://twitter.com/yumenosoranet" %>
         </p>
       </div>
-    <% end %>
-    
-    <%= form_tag profile_path do%>
-      <div class="content">
-        <h2>新規プロフィール作成</h2>
-        
-        <div class="input-field">
-          <label for="profile_nickname" style="width:6em">ニックネーム</label>
-          <%= text_field_tag "profile[nickname]", '' %>
-        </div>
-        
-        <div class="input-field">
-          <label for="profile_profile_text" style="width:6em">自己紹介文</label>
-          <%= text_area_tag "profile[profile_text]" %>
-        </div>
-      </div>
-      <%= hidden_field_tag 'id', params[:service_id] %>
-    <% end %>
-    
-    <ul class="menu">
-      <li id="submit">プロフィールを作成して次へ</li>
-    </ul>
+    </div>
+  <% end %>
+
+  <%= form_tag profile_path do%>
+    <h2>新規プロフィール作成</h2>
+
+    <div class="form-group">
+      <label for="profile_nickname">ニックネーム</label>
+      <%= text_field_tag "profile[nickname]", '', :class => 'form-control' %>
+    </div>
+
+    <div class="form-group">
+      <label for="profile_profile_text">自己紹介文</label>
+      <%= text_area_tag "profile[profile_text]", '', :class => 'form-control' %>
+    </div>
+    <%= hidden_field_tag 'id', params[:service_id] %>
+    <button type="submit" class="btn btn-primary">ログイン</button>
   <% end %>
 </div>
-
