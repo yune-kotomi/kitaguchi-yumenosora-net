@@ -1,23 +1,20 @@
 <% @title = "#{@profile.nickname}: プロフィール編集" %>
-<% content_for :breadcrumb do %>
-  <% if @service.present? %><li><%= link_to @service.title, @service.root %></li><% end %>
-<% end %>
 <% content_for :head do -%>
   <%= javascript_include_tag "edit_profile" %>
 <% end %>
 
 <div class="container" style="margin-top: 1em;">
   <% if @profile.errors.any? %>
-    <div class="panel panel-warning">
-      <div class="panel-heading">
-        <h3 class="panel-title">入力にエラーがあります</h3>
-      </div>
-      <div class="panel-body">
-        <ul>
-        <% @profile.errors.full_messages.each do |msg| %>
-          <li><%= msg %></li>
-        <% end %>
-        </ul>
+    <div class="mod mod-cards">
+      <div class="crow card fill-white">
+        <div class="ws-12">
+          <h3 class="panel-title">入力にエラーがあります</h3>
+          <ul>
+            <% @profile.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
       </div>
     </div>
   <% end %>
@@ -25,65 +22,101 @@
   <%= form_for(@profile) do |f| %>
     <h2>プロフィール編集</h2>
 
-    <div class="form-group">
+    <div>
       <label for="profile_nickname">ニックネーム</label>
-      <%= f.text_field :nickname, :class => 'form-control' %>
+      <%= f.text_field :nickname %>
     </div>
 
-    <div class="form-group">
+    <div>
       <label for="profile_profile_text">自己紹介文</label>
-      <%= f.text_area :profile_text, :class => 'form-control' %>
+      <%= f.text_area :profile_text %>
     </div>
     <%= hidden_field_tag 'id', params[:service_id] %>
   <% end %>
 
   <div>
     <h2>ログインに使用できるOpenID</h2>
-    <ul>
+    <ul class="unstyled" id="openid-list">
       <% @profile.openid_urls.each do |openid_url| %>
-        <li style="margin-bottom: 5px;">
-          <%= openid_url.str %>
-          <button class="btn btn-default" data-toggle="modal" data-target="#openid-<%= openid_url.id %>">
-            <i class="glyphicon glyphicon-pencil"></i>
-          </button>
+        <li>
+          <%= link_to '#', :class => 'list-item', :data => {:id => openid_url.id} do %>
+            <div class="text">
+              <%= openid_url.str %>
+            </div>
+          <% end %>
         </li>
       <% end %>
     </ul>
 
-    <%= link_to '新しいOpenIDを追加する', profile_authenticate_path(:mode => 'id_append'), :class => 'btn btn-default' %>
-    <%= link_to "#{@service.title}へ戻る", back_from_profile(@service, @login_profile), :class => 'btn btn-default' if @service.present? %>
+    <div style="text-align:center">
+      <%= link_to profile_authenticate_path(:mode => 'id_append'),
+        :class => "circle button fill-blue",
+        :style => "height: 70px;" do %>
+        <span><i class="icon icon-plus3 text-white"></i></span>
+      <% end %>
+    </div>
+
+    <%= link_to back_from_profile(@service, @login_profile),
+      :class => "button fill-blue text-white" do %>
+      <i class="icon icon-back"></i>
+      <%= "#{@service.title}へ戻る" %>
+    <% end if @service.present? %>
   </div>
 </div>
 
 <% @profile.openid_urls.each do |openid_url| %>
-  <div class="modal fade" id="openid-<%= openid_url.id %>">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title">IDについて</h4>
-        </div>
-        <div class="modal-body">
-          <p>
-            <%= openid_url.str %>
-          </p>
+  <div class="modal" style="display: none" id="openid-dialog-<%= openid_url.id %>">
+    <div class="modal-inner crow no-gutter">
+      <div class="container">
+        <div class="crow fill-white card no-gutter" style="display:block;">
+          <div class="ws-12">
+            <div class="fill-blue tile text-white" style="padding:10px; width:100%;">
+              <span>IDについて</span>
+            </div>
 
-          <% if openid_url.primary_openid %>
-            <p>
-              これは主OpenIDです。プロフィールから削除できません。
-            </p>
-          <% end %>
+            <div class="spacer quarter"></div>
+
+            <div class="crow up">
+              <div class="ws-12">
+                <p>
+                  <%= openid_url.str %>
+                </p>
+
+                <% if openid_url.primary_openid %>
+                  <p>
+                    これは主OpenIDです。プロフィールから削除できません。
+                  </p>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="spacer quarter"></div>
+
+            <div class="crow">
+              <div class="ws-6" style="padding-bottom: 10px">
+                <% unless openid_url.primary_openid %>
+                  <%= link_to openid_url,
+                    :method => :delete,
+                    :class => 'button fill-red text-white',
+                    :confirm => '削除します。この処理は取り消せません。' do %>
+                    <i class="icon icon-trash"></i>
+                    削除する
+                  <% end %>
+                <% end %>
+              </div>
+
+              <div class="ws-6" style="text-align: right;padding-bottom: 10px">
+                <%= link_to "#",
+                  :class => 'button fill-blue text-white close-button',
+                  :data => {:id => openid_url.id} do %>
+                  <i class="icon icon-cross"></i>
+                  閉じる
+                <% end %>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="modal-footer">
-          <% unless openid_url.primary_openid %>
-            <%= form_for openid_url, :html => {:id => "delete_openid_url_#{openid_url.id}", :style => 'display: inline'} do %>
-              <%= hidden_field_tag '_method', 'delete' %>
-              <button type="submit" class="btn btn-danger">削除する</button>
-            <% end %>
-          <% end %>
-          <button type="button" class="btn btn-primary" data-dismiss="modal">閉じる</button>
-        </div>
-      </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-  </div><!-- /.modal -->
+      </div>
+    </div>
+  </div>
 <% end %>

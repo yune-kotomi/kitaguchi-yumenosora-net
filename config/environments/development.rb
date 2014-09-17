@@ -26,6 +26,7 @@ Hotarugaike::Application.configure do
   # This option may cause significant delays in view rendering with a large
   # number of complex assets.
   config.assets.debug = true
-  
+  config.opal.source_map_enabled = true
+
   config.admin_openid_url = 'http://www.hatena.ne.jp/yune_kotomi/'
 end

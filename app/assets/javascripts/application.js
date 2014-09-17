@@ -5,4 +5,5 @@
 // = require opal-jquery
 // = require_directory ./opal_utils
 // = require authenticate
-// = require bootstrap.min
+// = require libs/Waves-master/dist/waves
+// = require script
