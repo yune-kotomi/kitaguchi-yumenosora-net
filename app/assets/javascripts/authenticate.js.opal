@@ -4,13 +4,22 @@ def login_with(openid)
 end
 
 Document.ready? do
-  ({
-    'livedoor' => 'http://livedoor.com',
-    'mixi' => 'https://mixi.jp',
-    'yahoojp' => 'yahoo.co.jp'
-  }).each do |key, openid|
-    Element.find("##{key}").on('click') do
-      login_with(openid)
+  # ログインボタン群
+  Element.find('.specific-id-button').each do |button|
+    button.on('click') do
+      url = button['data-url']
+      login_with(url)
     end
+  end
+
+  # 「その他の〜」ダイアログ
+  Element.find('#other-openid').on('click') do
+    Element.find('#openid-form').fade_in
+    false
+  end
+
+  Element.find('#openid-form .close-button').on('click') do
+    Element.find('#openid-form').fade_out
+    false
   end
 end
