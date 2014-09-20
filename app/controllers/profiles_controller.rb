@@ -12,12 +12,16 @@ class ProfilesController < ApplicationController
       # do nothing
     end
   end
-  
+
   def new
     @openid_url = OpenidUrl.find(session[:openid_url_id])
     @profile = Profile.new
+    @service = Service.find(params[:service_id]||session[:service_back_to])
+    session[:service_back_to] = @service.id
+  rescue ActiveRecord::RecordNotFound
+    # do nothing
   end
-  
+
   def create
     @service = Service.find(params[:id])
     @openid_url = OpenidUrl.find(session[:openid_url_id])
@@ -28,13 +32,13 @@ class ProfilesController < ApplicationController
       @profile = Profile.new(params[:profile].permit(:nickname, :profile_text))
       @profile.domain_name = @openid_url.domain_name
       @profile.screen_name = @openid_url.screen_name
-      
+
       if @profile.save
         @openid_url.update_attributes(:primary_openid => true, :profile_id => @profile.id)
         session[:login_profile_id] = @profile.id
         deliver_to_service(@service, @profile)
       else
-        redirect_to :action => :new, :service_id => @service.id
+        render :new
       end
     end
   end
@@ -47,11 +51,11 @@ class ProfilesController < ApplicationController
       @login_profile.profile_services.each do |profile_service|
         profile_service.service.notice(@login_profile)
       end
-      
+
       format.html { render :text => 'true' }
     end
   end
-  
+
   def authenticate
     # セッションの再生成
     temp = session.to_hash
@@ -60,7 +64,7 @@ class ProfilesController < ApplicationController
     temp.each do |key, value|
       session[key] = value
     end
-    
+
     begin
       @service = Service.find(params[:id])
       # 署名検証
@@ -73,18 +77,18 @@ class ProfilesController < ApplicationController
       rescue Service::InvalidSignatureError
         forbidden
       end
-      
+
       # ログアウト状態なので認証サービスの選択を求める
     rescue ActiveRecord::RecordNotFound
       @service = Service.find(old_flash[:service_id]) if old_flash[:service_id].present?
     end
   end
-  
+
   def logout
     session[:openid_url_id] = nil
     session[:last_login] = nil
     session[:login_profile_id] = nil
-    
+
     @service = Service.find(params[:id])
     redirect_to @service.root
   end

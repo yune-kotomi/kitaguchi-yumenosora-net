@@ -5,51 +5,57 @@
 
 <div class="container" style="margin-top: 1em;">
   <% if @profile.errors.any? %>
-    <div class="panel panel-warning">
-      <div class="panel-heading">
-        <h3 class="panel-title">入力にエラーがあります</h3>
-      </div>
-      <div class="panel-body">
-        <ul>
-        <% @profile.errors.full_messages.each do |msg| %>
-          <li><%= msg %></li>
-        <% end %>
-        </ul>
+    <div class="mod mod-cards">
+      <div class="crow card fill-white">
+        <div class="ws-12">
+          <h3 class="panel-title">入力にエラーがあります</h3>
+          <ul>
+            <% @profile.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
       </div>
     </div>
   <% end %>
 
   <% if ['www.google.com','me.yahoo.co.jp'].include?(@openid_url.domain_name) %>
-    <div class="panel panel-warning">
-      <div class="panel-heading">
-        <h3 class="panel-title">ユーザ登録済みにも関わらずこの画面が出る場合</h3>
-      </div>
-      <div class="panel-body">
-        <p>
-          他のOpenIDでユーザ登録済みではありませんか？<br>
-          その場合はそのOpenIDでログイン後、プロフィールの編集画面からこのOpenIDを追加することができます。
-        </p>
-        <p>
-          このOpenIDでユーザ登録済みにも関わらずこの画面が出る場合はお問い合わせください。<br>
-          <%= link_to '「雨上がりの青空を探して」 Twitterアカウント', "https://twitter.com/yumenosoranet" %>
-        </p>
+    <div class="mod mod-cards">
+      <div class="crow card fill-white">
+        <div class="ws-12">
+          <h3 class="panel-title">ユーザ登録済みにも関わらずこの画面が出る場合</h3>
+          <p>
+            他のIDでユーザ登録済みではありませんか？<br>
+            その場合はそのIDでログイン後、プロフィールの編集画面からこのIDを追加することができます。
+          </p>
+          <p>
+            このIDでユーザ登録済みにも関わらずこの画面が出る場合はお問い合わせください。<br>
+            <%= link_to '「雨上がりの青空を探して」 Twitterアカウント', "https://twitter.com/yumenosoranet" %>
+          </p>
+        </div>
       </div>
     </div>
   <% end %>
 
   <%= form_tag profile_path do%>
-    <h2>新規プロフィール作成</h2>
+    <h2>新規プロフィール</h2>
 
     <div class="form-group">
       <label for="profile_nickname">ニックネーム</label>
-      <%= text_field_tag "profile[nickname]", '', :class => 'form-control' %>
+      <%= text_field_tag "profile[nickname]", '' %>
     </div>
 
     <div class="form-group">
-      <label for="profile_profile_text">自己紹介文</label>
-      <%= text_area_tag "profile[profile_text]", '', :class => 'form-control' %>
+      <label for="profile_profile_text">自己紹介文(省略可)</label>
+      <%= text_area_tag "profile[profile_text]", '' %>
     </div>
-    <%= hidden_field_tag 'id', params[:service_id] %>
-    <button type="submit" class="btn btn-primary">ログイン</button>
+    <%= hidden_field_tag 'id', params[:service_id] || params[:id] %>
+
+    <div style="margin-top: 10px; text-align: right">
+      <button type="submit" class="button fill-blue text-white">
+        <i class="icon icon-checkmark"></i>
+        作成してログイン
+      </button>
+    </div>
   <% end %>
 </div>

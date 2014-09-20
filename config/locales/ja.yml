@@ -1,0 +1,11 @@
+ja:
+  activerecord:
+    errors:
+      models:
+        profile:
+          attributes:
+            nickname:
+              blank: は省略できません
+    attributes:
+      profile:
+        nickname: ニックネーム
