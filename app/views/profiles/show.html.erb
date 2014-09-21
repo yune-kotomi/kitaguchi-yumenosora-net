@@ -98,7 +98,7 @@
                   <%= link_to openid_url,
                     :method => :delete,
                     :class => 'button fill-red text-white',
-                    :confirm => '削除します。この処理は取り消せません。' do %>
+                    :data => {:confirm => '削除します。この処理は取り消せません。'} do %>
                     <i class="icon icon-trash"></i>
                     削除する
                   <% end %>
