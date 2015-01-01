@@ -59,7 +59,7 @@ class ProfilesController < ApplicationController
   def authenticate
     # セッションの再生成
     temp = session.to_hash
-    old_flash = flash.to_hash
+    old_flash = flash.to_hash.symbolize_keys
     reset_session
     temp.each do |key, value|
       session[key] = value

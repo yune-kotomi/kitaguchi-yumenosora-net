@@ -7,7 +7,7 @@ class OpenidUrlsController < ApplicationController
     begin
       openid_url = params[:openid_url].gsub("#", "%23")
       request = consumer.begin(openid_url)
-      trust_root = root_path(:only_path => false)
+      trust_root = root_url
       return_to = url_for(:action=> 'complete', :service_id => params[:service_id])
 
       url = request.redirect_url(trust_root, return_to)
@@ -23,7 +23,7 @@ class OpenidUrlsController < ApplicationController
   end
 
   def complete
-    current_url = url_for(:only_path => false, :service_id => params[:service_id])
+    current_url = url_for(:service_id => params[:service_id])
     parameters = params.reject{ |k,v| request.path_parameters[k] or request.path_parameters[k.to_sym] }
     parameters.delete(:service_id)
     response = consumer.complete(parameters, current_url)
