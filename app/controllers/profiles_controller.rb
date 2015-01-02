@@ -53,6 +53,7 @@ class ProfilesController < ApplicationController
       end
 
       format.html { render :text => 'true' }
+      format.json { render :text => ({:status => true}).to_json }
     end
   end
 

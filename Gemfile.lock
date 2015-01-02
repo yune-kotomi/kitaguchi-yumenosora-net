@@ -1,4 +1,10 @@
 GIT
+  remote: git://github.com/iwadon/text-hatena.git
+  revision: 5798e7b4110eae214106b370e1cf3ae5f9e9942e
+  specs:
+    text-hatena (0.12.20080627.0)
+
+GIT
   remote: git://github.com/rails/activerecord-session_store.git
   revision: e879bf087eb684452aaddb734efa20b95588b141
   specs:
@@ -205,6 +211,7 @@ DEPENDENCIES
   ruby-openid
   sass-rails
   sdoc
+  text-hatena!
   therubyracer
   tlsmail
   turbolinks

@@ -48,6 +48,7 @@ gem 'jwt', '~> 1.2.0'
 gem 'tlsmail'
 gem 'opal-rails', '~> 0.6.1'
 gem 'activerecord-session_store', :github => 'rails/activerecord-session_store'
+gem 'text-hatena', :github => 'iwadon/text-hatena'
 
 group :development, :test do
   gem 'pry'

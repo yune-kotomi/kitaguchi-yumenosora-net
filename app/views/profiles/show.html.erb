@@ -19,7 +19,7 @@
     </div>
   <% end %>
 
-  <%= form_for(@profile) do |f| %>
+  <%= form_for(@profile, :action => :update, :format => :json) do |f| %>
     <h2>プロフィール編集</h2>
 
     <div>
