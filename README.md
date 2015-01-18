@@ -5,3 +5,6 @@ kitaguchi.yumenosora.net で運用中の共通認証サービスを提供する�
 「読書びより http://dokusho.yumenosora.net/ 」
 「カケラの樹 http://kakera.yumenosora.net/ 」
 から使用しています。
+
+Leaf CSS Frameworkを使用しています。
+Leaf CSS Framework by @kortekim http://getleaf.com/
