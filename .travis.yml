@@ -1,0 +1,14 @@
+language: ruby
+rvm:
+  - 2.2.0
+before_script:
+  - psql -c 'create database kitaguchi_test;' -U postgres
+  - cp config/database.yml.travis config/database.yml
+  - cp config/initializers/hatena_api_auth.rb.example config/initializers/hatena_api_auth.rb
+  - rake db:migrate RAILS_ENV=test
+cache: bundler
+addons:
+  postgresql: "9.3"
+notifications:
+  email:
+    - yune.kotomi+github@gmail.com
