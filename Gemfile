@@ -41,7 +41,7 @@ gem 'google-id-token'
 gem 'jwt'
 gem 'tlsmail'
 gem 'opal-rails'
-gem 'activerecord-session_store', :github => 'rails/activerecord-session_store'
+gem 'activerecord-session_store', :github => 'rails/activerecord-session_store', :ref => 'a30ec3117d189bfe67261e3c80364627107d76ea'
 gem 'text-hatena', :github => 'iwadon/text-hatena'
 
 group :development, :test do
