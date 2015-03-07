@@ -6,9 +6,10 @@ GIT
 
 GIT
   remote: git://github.com/rails/activerecord-session_store.git
-  revision: 2d9517d0f26281e76e80e63ca202fb7dafbe27cb
+  revision: a30ec3117d189bfe67261e3c80364627107d76ea
+  ref: a30ec3117d189bfe67261e3c80364627107d76ea
   specs:
-    activerecord-session_store (0.1.1)
+    activerecord-session_store (0.1.0)
       actionpack (>= 4.0.0, < 5)
       activerecord (>= 4.0.0, < 5)
       railties (>= 4.0.0, < 5)
