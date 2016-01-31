@@ -8,6 +8,7 @@ gem 'sass-rails'
 
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier'
+gem 'therubyracer'
 
 # Use jquery as the JavaScript library
 gem 'jquery-rails'
@@ -37,12 +38,12 @@ gem 'log4r'
 gem 'uuidtools'
 gem 'ruby-openid'
 gem 'hatenaapiauth'
-gem 'google-id-token'
+gem 'google-id-token', :github => 'Nerian/google-id-token'
 gem 'jwt'
 gem 'tlsmail'
 gem 'opal-rails'
 gem 'activerecord-session_store', :github => 'rails/activerecord-session_store', :ref => 'a30ec3117d189bfe67261e3c80364627107d76ea'
-gem 'text-hatena', :github => 'iwadon/text-hatena'
+gem 'text-hatena', :github => 'yune-kotomi/text-hatena'
 
 group :development, :test do
   gem 'pry'

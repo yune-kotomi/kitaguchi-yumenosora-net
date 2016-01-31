@@ -1,7 +1,4 @@
 <% @title = "#{@profile.nickname}: プロフィール編集" %>
-<% content_for :head do -%>
-  <%= javascript_include_tag "edit_profile" %>
-<% end %>
 
 <div class="container" style="margin-top: 1em;">
   <% if @profile.errors.any? %>
