@@ -1,17 +1,3 @@
-require 'log4r'
-require 'log4r/configurator'
-require 'log4r/yamlconfigurator'
-require "log4r/outputter/emailoutputter"
-require 'tlsmail'
-
-module Log4r
-  class Logger
-    def formatter
-      @outputters.map{|outputter| outputter.formatter}.first
-    end
-  end
-end
-
 Hotarugaike::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
@@ -85,7 +71,7 @@ Hotarugaike::Application.configure do
 
   config.hatenaapiauth_key = ''
   config.hatenaapiauth_secret = ''
-  
+
   # Send deprecation notices to registered listeners.
   config.active_support.deprecation = :notify
 
@@ -93,10 +79,7 @@ Hotarugaike::Application.configure do
   # config.autoflush_log = false
 
   # Use default logging formatter so that PID and timestamp are not suppressed.
-  Net::SMTP.enable_tls(OpenSSL::SSL::VERIFY_NONE)
-  Log4r::YamlConfigurator.load_yaml_file("#{::Rails.root.to_s}/config/log4r.yml")
-  config.logger = Log4r::Logger["production_logger"]
-  
+  config.log_formatter = ::Logger::Formatter.new
+
   config.admin_openid_url = 'http://www.hatena.ne.jp/yune_kotomi/'
 end
-

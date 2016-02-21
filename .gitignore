@@ -15,5 +15,5 @@ tmp
 public/test/
 public/development/
 config/initializers/hatena_api_auth.rb
-config/log4r.yml
+config/initializers/exception_notification.rb
 config/openid_connect.yml

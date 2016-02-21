@@ -34,13 +34,11 @@ end
 # gem 'debugger', group: [:development, :test]
 
 gem 'pg'
-gem 'log4r'
 gem 'uuidtools'
 gem 'ruby-openid'
 gem 'hatenaapiauth'
 gem 'google-id-token', :github => 'Nerian/google-id-token'
 gem 'jwt'
-gem 'tlsmail'
 gem 'opal-rails'
 gem 'activerecord-session_store', :github => 'rails/activerecord-session_store', :ref => 'a30ec3117d189bfe67261e3c80364627107d76ea'
 gem 'text-hatena', :github => 'yune-kotomi/text-hatena'
