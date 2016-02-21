@@ -34,6 +34,7 @@ end
 # gem 'debugger', group: [:development, :test]
 
 gem 'pg'
+gem 'exception_notification'
 gem 'uuidtools'
 gem 'ruby-openid'
 gem 'hatenaapiauth'
