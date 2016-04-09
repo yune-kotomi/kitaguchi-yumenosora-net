@@ -4,7 +4,7 @@
 # model remove the '{}' from the fixture names and add the columns immediately
 # below each fixture, per the syntax in the comments below
 #
-one: 
+one:
   title: サービス1
   logo: http://www.example.com/logo.png
   banner: http://www.example.com/banner.png
@@ -14,8 +14,9 @@ one:
   profile_update: http://www.example.com/authenticate/profile_update
   back_from_profile: http://www.example.com/authenticate/redirect_profile
   key: service1-key
+  config_provider: http://www.example.com/kitaguchi/token
 
-two: 
+two:
   title: サービス2
   logo: http://www2.example.com/logo.png
   banner: http://www2.example.com/banner.png
@@ -25,4 +26,4 @@ two:
   profile_update: http://www2.example.com/authenticate/profile_update
   back_from_profile: http://www2.example.com/authenticate/redirect_profile
   key: service2-key
-
+  config_provider: http://www2.example.com/kitaguchi/token

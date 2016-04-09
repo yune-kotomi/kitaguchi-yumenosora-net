@@ -139,7 +139,7 @@ class HatenaControllerTest < ActionController::TestCase
     end
 
     assert_response :redirect
-    assert /^#{@service2.auth_success}/ =~ response.location
+    assert /^#{@service2.authenticate_success}/ =~ response.location
     assert ['id', 'key', 'timestamp', 'signature'].sort,
       CGI.parse(URI(response.location).query).keys.sort
   end
@@ -158,7 +158,7 @@ class HatenaControllerTest < ActionController::TestCase
     end
 
     assert_response :redirect
-    assert /^#{@service.auth_success}/ =~ response.location
+    assert /^#{@service.authenticate_success}/ =~ response.location
     assert ['id', 'key', 'timestamp', 'signature'].sort,
       CGI.parse(URI(response.location).query).keys.sort
     assert_equal @hatena_id.profile.id, session[:login_profile_id]
@@ -178,6 +178,6 @@ class HatenaControllerTest < ActionController::TestCase
       end
     end
 
-    assert_redirected_to @service.auth_fail
+    assert_redirected_to @service.authenticate_failure
   end
 end

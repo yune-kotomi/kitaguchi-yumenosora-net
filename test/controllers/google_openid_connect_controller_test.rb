@@ -51,7 +51,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
       end
     end
     assert_response :redirect
-    assert /^#{@service2.auth_success}/ =~ response.location
+    assert /^#{@service2.authenticate_success}/ =~ response.location
     assert ['id', 'key', 'timestamp', 'signature'].sort,
       CGI.parse(URI(response.location).query).keys.sort
   end
@@ -65,7 +65,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
       end
     end
     assert_response :redirect
-    assert /^#{@service.auth_success}/ =~ response.location
+    assert /^#{@service.authenticate_success}/ =~ response.location
     assert ['id', 'key', 'timestamp', 'signature'].sort,
       CGI.parse(URI(response.location).query).keys.sort
     assert_equal @primary_openid_url.profile.id, session[:login_profile_id]
@@ -82,7 +82,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
       end
     end
 
-    assert_redirected_to @service.auth_fail
+    assert_redirected_to @service.authenticate_failure
   end
 
   test "modeが指定されたらflashに保存してGoogleへリダイレクト" do

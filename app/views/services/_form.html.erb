@@ -15,42 +15,17 @@
     タイトル
     <%= f.text_field :title %>
   </div>
-  
+
   <div>
-    ロゴ
-    <%= f.text_field :logo %>
+    設定
+    <%= f.text_field :config_provider %>
   </div>
-  
+
   <div>
-    バナー
-    <%= f.text_field :banner %>
+    共通鍵
+    <%= f.text_field :key %>
   </div>
-  
-  <div>
-    root
-    <%= f.text_field :root %>
-  </div>
-  
-  <div>
-    認証成功後
-    <%= f.text_field :auth_success %>
-  </div>
-  
-  <div>
-    認証失敗後
-    <%= f.text_field :auth_fail %>
-  </div>
-  
-  <div>
-    プロフィール更新
-    <%= f.text_field :profile_update %>
-  </div>
-  
-  <div>
-    プロフィール更新後の戻し先
-    <%= f.text_field :back_from_profile %>
-  </div>
-  
+
   <div class="actions">
     <%= f.submit %>
   </div>

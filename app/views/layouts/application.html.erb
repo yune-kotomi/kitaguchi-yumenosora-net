@@ -15,7 +15,7 @@
   <body data-base-url="<%= url_for root_url %>" data-rails-env="<%= Rails.env.to_s %>">
     <div id="header" class="container">
       <%= link_to image_tag('logo.png'), "/" unless @service %>
-      <%= link_to image_tag(@service.logo), @service.root if @service %>
+      <%= link_to image_tag(@service.logos['1x'], :alt => @service.title, :srcset => @service.logos.map{|k, v| "#{v} #{k}"}.join(', ')), @service.root if @service %>
     </div>
 
     <%= yield %>

@@ -11,6 +11,9 @@ class ProfilesControllerTest < ActionController::TestCase
     @unregistered_openid_url = openid_urls(:unregistered)
 
     WebMock.reset!
+
+    @service_conf = stub_service_config_provider(@service)
+    @service2_conf = stub_service_config_provider(@service2)
   end
 
   test "authenticateはログイン済みの場合は認証チケットを発行してサービスに戻す" do
@@ -26,7 +29,7 @@ class ProfilesControllerTest < ActionController::TestCase
 
     assert_response :redirect
     location = response.location
-    assert_equal URI(@service.auth_success).host, URI(location).host
+    assert_equal URI(@service.authenticate_success).host, URI(location).host
     params = CGI.parse(URI(location).query)
     assert_equal @service.id.to_s, params['id'].first
     assert AuthTicket.where(:key => params['key'].first).count > 0
@@ -47,7 +50,7 @@ class ProfilesControllerTest < ActionController::TestCase
 
     assert_response :redirect
     location = response.location
-    assert_equal URI(@service2.auth_success).host, URI(location).host
+    assert_equal URI(@service2.authenticate_success).host, URI(location).host
     params = CGI.parse(URI(location).query)
     assert_equal @service2.id.to_s, params['id'].first
     assert AuthTicket.where(:key => params['key'].first).count > 0
@@ -104,7 +107,7 @@ class ProfilesControllerTest < ActionController::TestCase
         {:openid_url_id => @unregistered_openid_url.id}
     end
     assert_response :redirect
-    assert /^#{@service.auth_success}/ =~ response.location
+    assert /^#{@service.authenticate_success}/ =~ response.location
     assert assigns(:openid_url).primary_openid
     assert_equal assigns(:openid_url).profile, assigns(:profile)
     assert_equal assigns(:profile).domain_name, @unregistered_openid_url.domain_name
@@ -139,12 +142,12 @@ class ProfilesControllerTest < ActionController::TestCase
   end
 
   test "update実行時には登録済みサービスに対して更新通知を送信する" do
-    stub_request(:any, URI(@service.root).host)
+    stub_request(:any, URI(@service_conf['profile']['update']).host)
     patch :update,
       {:profile => {:nickname => 'new nickname'}},
       {:login_profile_id => @profile.id}
 
-    assert_requested :post, @service.profile_update, :times => 1 do |post_request|
+    assert_requested :post, @service_conf['profile']['update'], :times => 1 do |post_request|
       params = CGI.parse(post_request.body)
       'new nickname' == params['nickname'].first and @profile.id.to_s == params['profile_id'].first
     end

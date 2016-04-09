@@ -25,7 +25,7 @@ class ServicesController < ApplicationController
   # POST /services
   # POST /services.json
   def create
-    @service = Service.new(service_params.permit(:title, :logo, :banner, :root, :auth_success, :auth_fail, :profile_update, :back_from_profile))
+    @service = Service.new(service_params.permit(:title, :key, :config_provider))
 
     respond_to do |format|
       if @service.save
@@ -42,7 +42,7 @@ class ServicesController < ApplicationController
   # PATCH/PUT /services/1.json
   def update
     respond_to do |format|
-      if @service.update(service_params.permit(:title, :logo, :banner, :root, :auth_success, :auth_fail, :profile_update, :back_from_profile))
+      if @service.update(service_params.permit(:title, :key, :config_provider))
         format.html { redirect_to @service, notice: 'Service was successfully updated.' }
         format.json { head :no_content }
       else
@@ -72,7 +72,7 @@ class ServicesController < ApplicationController
     def service_params
       params[:service]
     end
-    
+
     def admin_login_required
       admin_openid_url = OpenidUrl.where(:str => Hotarugaike::Application.config.admin_openid_url).first
       if @login_profile == admin_openid_url.profile

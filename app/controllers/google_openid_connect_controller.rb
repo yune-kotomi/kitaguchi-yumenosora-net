@@ -22,7 +22,7 @@ class GoogleOpenidConnectController < ApplicationController
 
   rescue OpenIDConnect::CancelError, OpenIDConnect::InvalidTokenError, OpenIDConnect::ExchangeError, OpenIDConnect::IdTokenError => e
     if @service.present?
-      redirect_to @service.auth_fail
+      redirect_to @service.authenticate_failure
     else
       flash[:notice] = "認証できませんでした。"
       redirect_to :controller => :profiles, :action => :authenticate
