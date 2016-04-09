@@ -37,10 +37,12 @@ class ServiceTest < ActiveSupport::TestCase
   end
 
   test "profile_updateに指定されたURLへPOSTでプロフィール内容変更の通知を送る" do
-    stub_request(:any, "www.example.com")
+    payload = stub_service_config_provider(@one)
+
+    stub_request(:any, URI(payload['root']).host)
     @one.notice(@profile)
 
-    assert_requested :post, @one.profile_update, :times => 1 do |request|
+    assert_requested :post, payload['profile']['update'], :times => 1 do |request|
       params = CGI.parse(request.body)
 
       message = [
@@ -55,5 +57,18 @@ class ServiceTest < ActiveSupport::TestCase
 
       expected == params['signature'].first
     end
+  end
+
+  test "ロゴやリダイレクト先をクライアントから取得できる" do
+    Rails.cache.delete("service-remote-config-#{@one.id}")
+
+    payload = stub_service_config_provider(@one)
+
+    assert_equal payload['logo'], @one.logos
+    assert_equal payload['banner'], @one.banners
+    assert_equal payload['root'], @one.root
+    assert_equal payload['authenticate']['success'], @one.authenticate_success
+    assert_equal payload['authenticate']['failure'], @one.authenticate_failure
+    assert_equal payload['profile']['back'], @one.user_page_url
   end
 end

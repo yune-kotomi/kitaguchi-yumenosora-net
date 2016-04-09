@@ -15,7 +15,7 @@ class HatenaController < ApplicationController
 
     rescue Hatena::API::AuthError
       if @service.present?
-        redirect_to @service.auth_fail
+        redirect_to @service.authenticate_failure
       else
         flash[:notice] = "認証できませんでした。"
         redirect_to :controller => :profiles, :action => :authenticate

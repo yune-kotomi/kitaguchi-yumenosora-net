@@ -1,6 +1,7 @@
 <p id="notice"><%= notice %></p>
 <%= @service.title %>
 <%= @service.key %>
+<pre><%= @service.remote_config.pretty_inspect %></pre>
 
 <%= link_to 'Edit', edit_service_path(@service) %> |
 <%= link_to 'Back', services_path %>

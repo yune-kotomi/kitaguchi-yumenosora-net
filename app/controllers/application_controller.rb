@@ -43,7 +43,7 @@ class ApplicationController < ActionController::Base
       "#{key}=#{CGI.escape(value.to_s)}"
     end.join('&')
 
-    redirect_to "#{service.auth_success}?#{query}"
+    redirect_to "#{service.authenticate_success}?#{query}"
   end
 
   def identity_retrieved_after(identity_url)

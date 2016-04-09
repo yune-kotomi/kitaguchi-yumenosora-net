@@ -62,6 +62,11 @@ class OpenidUrlsControllerTest < ActionController::TestCase
       "openid.claimed_id"=>"http://example.com/user",
       "openid.op_endpoint"=>"https://example.com/openid/server"
     }
+
+    WebMock.reset!
+
+    @service_conf = stub_service_config_provider(@service)
+    @service2_conf = stub_service_config_provider(@service2)
   end
 
   test "OpenID URLをPOSTするとOPへリダイレクトする" do
@@ -97,7 +102,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     end
 
     assert_response :redirect
-    assert /^#{@service2.auth_success}/ =~ response.location
+    assert /^#{@service2.authenticate_success}/ =~ response.location
     assert ['id', 'key', 'timestamp', 'signature'].sort,
       CGI.parse(URI(response.location).query).keys.sort
   end
@@ -112,7 +117,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     end
 
     assert_response :redirect
-    assert /^#{@service.auth_success}/ =~ response.location
+    assert /^#{@service.authenticate_success}/ =~ response.location
     assert ['id', 'key', 'timestamp', 'signature'].sort,
       CGI.parse(URI(response.location).query).keys.sort
     assert_equal @primary_openid_url.profile.id, session[:login_profile_id]
@@ -127,7 +132,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
       end
     end
 
-    assert_redirected_to @service.auth_fail
+    assert_redirected_to @service.authenticate_failure
   end
 
   test "OpenID認証キャンセル後は失敗としてサービスに戻す" do
@@ -139,7 +144,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
       end
     end
 
-    assert_redirected_to @service.auth_fail
+    assert_redirected_to @service.authenticate_failure
   end
 
   test "不正なOpenID URLをPOSTした場合、認証画面にリダイレクトで戻す" do
