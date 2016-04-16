@@ -39,11 +39,9 @@ class ApplicationController < ActionController::Base
     auth_ticket = service.auth_tickets.create(:profile_id => profile.id)
 
     # サービスへ引渡し
-    query = auth_ticket.deliver_params.map do |key, value|
-      "#{key}=#{CGI.escape(value.to_s)}"
-    end.join('&')
-
-    redirect_to "#{service.authenticate_success}?#{query}"
+    payload = {'key' => auth_ticket.key, 'exp' => 5.minutes.from_now.to_i}
+    token = JWT.encode(payload, service.key)
+    redirect_to "#{service.authenticate_success}?id=#{service.id}&token=#{token}"
   end
 
   def identity_retrieved_after(identity_url)

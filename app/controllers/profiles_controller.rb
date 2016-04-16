@@ -68,19 +68,22 @@ class ProfilesController < ApplicationController
 
     begin
       @service = Service.find(params[:id])
-      # 署名検証
-      begin
-        @service.validate_authenticate_request(params)
+      payload = JWT.decode(params[:token], @service.key).first
+      if payload['exp'].present?
         if @login_profile.present?
           # ログイン済みなのでサービスに戻す
           deliver_to_service(@service, @login_profile)
         end
-      rescue Service::InvalidSignatureError
+      else
+        # 期限指定がないトークンは不正
         forbidden
       end
 
-      # ログアウト状態なので認証サービスの選択を求める
+    rescue JWT::VerificationError
+      forbidden
+
     rescue ActiveRecord::RecordNotFound
+      # ログアウト状態なので認証サービスの選択を求める
       @service = Service.find(old_flash[:service_id]) if old_flash[:service_id].present?
     end
   end

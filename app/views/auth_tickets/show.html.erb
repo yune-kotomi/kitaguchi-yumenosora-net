@@ -1,1 +1,12 @@
-<%= @auth_ticket.retrieve_response.to_json.html_safe %>
+<%=
+payload = {
+  'profile_id' => @auth_ticket.profile.id,
+  'domain_name' => @auth_ticket.profile.domain_name,
+  'screen_name' => @auth_ticket.profile.screen_name,
+  'nickname' => @auth_ticket.profile.nickname,
+  'profile_text' => @auth_ticket.profile.profile_html,
+  'openid_url' => @auth_ticket.profile.primary_openid.str,
+  'exp' => 5.minutes.from_now.to_i
+}
+JWT.encode(payload, @service.key)
+%>

@@ -6,6 +6,10 @@ class HatenaControllerTest < ActionController::TestCase
     @service = services(:one)
     @service2 = services(:two)
     @primary_openid_url = openid_urls(:profile_one_primary)
+
+    WebMock.reset!
+    @service_conf = stub_service_config_provider(@service)
+    @service2_conf = stub_service_config_provider(@service2)
   end
 
   test "hatena_authenticate?mode=id_append flashにモード記録、はてなへ" do
