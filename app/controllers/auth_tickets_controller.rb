@@ -1,19 +1,19 @@
 class AuthTicketsController < ApplicationController
   layout false
   def show
-    @auth_ticket = AuthTicket.
-      where(:key => params[:key]).
-      where(AuthTicket.arel_table[:created_at].gt(5.minutes.ago)).first
-    
-    if @auth_ticket.present?
-      begin
-        @auth_ticket.validate_retrieve_request(params)
+    @service = Service.find(params[:id])
+    payload = JWT.decode(params[:token], @service.key).first
+    if payload['exp'].present?
+      @auth_ticket = AuthTicket.where(:key => payload['key']).first
+      if @auth_ticket.present?
         @auth_ticket.destroy
-      rescue AuthTicket::InvalidSignatureError
-        forbidden
+      else
+        render :json => {:status => 'Not Found'}, :status => 404
       end
     else
-      render :json => {:status => 'Not Found'}, :status => 404
+      forbidden
     end
+  rescue JWT::VerificationError
+    forbidden
   end
 end

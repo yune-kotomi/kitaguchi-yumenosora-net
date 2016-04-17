@@ -17,13 +17,11 @@ class ProfilesControllerTest < ActionController::TestCase
   end
 
   test "authenticateはログイン済みの場合は認証チケットを発行してサービスに戻す" do
-    timestamp = Time.new.to_i
-    message = [@service.id, timestamp, 'authenticate'].join
-    signature = OpenSSL::HMAC::hexdigest(OpenSSL::Digest::SHA256.new, @service.key, message)
+    token = JWT.encode({'id' => @service.id, 'exp' => 5.minutes.from_now.to_i}, @service.key)
 
     assert_difference('AuthTicket.count') do
       get :authenticate,
-        {:id => @service.id, :timestamp => timestamp, :signature => signature},
+        {:id => @service.id, :token => token},
         {:login_profile_id => @profile.id}
     end
 
@@ -32,18 +30,17 @@ class ProfilesControllerTest < ActionController::TestCase
     assert_equal URI(@service.authenticate_success).host, URI(location).host
     params = CGI.parse(URI(location).query)
     assert_equal @service.id.to_s, params['id'].first
-    assert AuthTicket.where(:key => params['key'].first).count > 0
+    payload = JWT.decode(params['token'].first, @service.key).first
+    assert AuthTicket.where(:key => payload['key']).count > 0
   end
 
   test "初めて使うサービスの場合、結びつけた上でサービスに戻す" do
-    timestamp = Time.new.to_i
-    message = [@service2.id, timestamp, 'authenticate'].join
-    signature = OpenSSL::HMAC::hexdigest(OpenSSL::Digest::SHA256.new, @service2.key, message)
+    token = JWT.encode({'id' => @service2.id, 'exp' => 5.minutes.from_now.to_i}, @service2.key)
 
     assert_difference('ProfileService.count') do
       assert_difference('AuthTicket.count') do
         get :authenticate,
-          {:id => @service2.id, :timestamp => timestamp, :signature => signature},
+          {:id => @service2.id, :token => token},
           {:login_profile_id => @profile.id}
       end
     end
@@ -53,7 +50,8 @@ class ProfilesControllerTest < ActionController::TestCase
     assert_equal URI(@service2.authenticate_success).host, URI(location).host
     params = CGI.parse(URI(location).query)
     assert_equal @service2.id.to_s, params['id'].first
-    assert AuthTicket.where(:key => params['key'].first).count > 0
+    payload = JWT.decode(params['token'].first, @service2.key).first
+    assert AuthTicket.where(:key => payload['key']).count > 0
   end
 
   test "サービスIDが指定されていない場合はログイン状態でも使用するIDの入力を求める" do
@@ -74,24 +72,31 @@ class ProfilesControllerTest < ActionController::TestCase
   end
 
   test "authenticateはログアウト状態の場合、使用するIDの入力を求める" do
-    timestamp = Time.new.to_i
-    message = [@service.id, timestamp, 'authenticate'].join
-    signature = OpenSSL::HMAC::hexdigest(OpenSSL::Digest::SHA256.new, @service.key, message)
+    token = JWT.encode({'id' => @service.id, 'exp' => 5.minutes.from_now.to_i}, @service.key)
 
     assert_no_difference('AuthTicket.count') do
       get :authenticate,
-        {:id => @service.id, :timestamp => timestamp, :signature => signature}
+        {:id => @service.id, :token => token}
     end
 
     assert_response :success
   end
 
   test "authenticateに不正な署名を与えた場合は403で応答する" do
-    timestamp = Time.new.to_i
+    token = JWT.encode({'id' => @service.id}, @service.key)
 
     assert_no_difference('AuthTicket.count') do
       post :authenticate,
-        {:id => @service.id, :timestamp => timestamp, :signature => 'invalid'}
+        {:id => @service.id, :token => token}
+    end
+
+    assert_response :forbidden
+
+    token = JWT.encode({'id' => @service.id, 'exp' => 5.minutes.from_now.to_i}, @service2.key)
+
+    assert_no_difference('AuthTicket.count') do
+      post :authenticate,
+        {:id => @service.id, :token => token}
     end
 
     assert_response :forbidden
@@ -142,22 +147,25 @@ class ProfilesControllerTest < ActionController::TestCase
   end
 
   test "update実行時には登録済みサービスに対して更新通知を送信する" do
-    stub_request(:any, URI(@service_conf['profile']['update']).host)
+    stub_request(:any, @service_conf['profile']['update'])
+
     patch :update,
       {:profile => {:nickname => 'new nickname'}},
       {:login_profile_id => @profile.id}
 
     assert_requested :post, @service_conf['profile']['update'], :times => 1 do |post_request|
-      params = CGI.parse(post_request.body)
-      'new nickname' == params['nickname'].first and @profile.id.to_s == params['profile_id'].first
+      query = CGI.parse(post_request.body)
+      payload = JWT.decode(query['token'].first, @service.key).first
+
+      'new nickname' == payload['nickname'] && @profile.id == payload['profile_id']
     end
   end
 
   test "ログアウト後、サービスに戻す" do
     get :logout, :id => @service.id
     assert_redirected_to @service.root
-    assert_nil session[:login_profile_id]
-    assert_nil session[:last_login]
-    assert_nil session[:openid_url_id]
+    assert session[:login_profile_id].nil?
+    assert session[:last_login].nil?
+    assert session[:openid_url_id].nil?
   end
 end

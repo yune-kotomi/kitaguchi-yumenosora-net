@@ -5,8 +5,11 @@ class ServicesControllerTest < ActionController::TestCase
     @service = services(:one)
     @admin_openid_url = openid_urls(:profile_one_primary)
     @admin_profile = @admin_openid_url.profile
-    
+
     @user = profiles(:two)
+
+    WebMock.reset!
+    @service_conf = stub_service_config_provider(@service)
   end
 
   test "should get index" do

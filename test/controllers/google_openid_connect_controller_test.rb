@@ -14,6 +14,10 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
     @service2 = services(:two)
     @primary_openid_url = openid_urls(:profile_one_primary)
     @profile = profiles(:one)
+
+    WebMock.reset!
+    @service_conf = stub_service_config_provider(@service)
+    @service2_conf = stub_service_config_provider(@service2)
   end
 
   test "認証開始を叩くとGoogleへリダイレクトする" do

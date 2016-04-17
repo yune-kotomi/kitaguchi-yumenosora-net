@@ -11,7 +11,7 @@ class HatenaController < ApplicationController
     begin
       user_info = hatena.login(params[:cert])
       openid_url = "http://www.hatena.ne.jp/#{user_info['name']}/"
-      identity_retrieved_after(openid_url)
+      identity_retrieved_after(openid_url, user_info['image_url'])
 
     rescue Hatena::API::AuthError
       if @service.present?
