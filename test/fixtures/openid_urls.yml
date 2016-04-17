@@ -12,10 +12,11 @@ two: {}
 
 profile_one_primary:
   str: http://www.example.com/one
+  profile_image: http://www.hatena.ne.jp/users/ha/hatena/profile.gif
   profile: one
   primary_openid: true
 
-profile_one_secondary: 
+profile_one_secondary:
   str: http://www.example.com/one-secondary
   profile: one
 
@@ -33,4 +34,3 @@ hatena_id:
 
 livedoor_id:
   str: http://profile.livedoor.com/user
-

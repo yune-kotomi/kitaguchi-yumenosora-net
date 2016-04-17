@@ -44,12 +44,18 @@ class ApplicationController < ActionController::Base
     redirect_to "#{service.authenticate_success}?id=#{service.id}&token=#{token}"
   end
 
-  def identity_retrieved_after(identity_url)
+  def identity_retrieved_after(identity_url, profile_image = nil)
     #ログイン完了
-    @openid_url = OpenidUrl.where(:str => identity_url).first
-    if @openid_url.nil?
-      @openid_url = OpenidUrl.new(:str => identity_url)
-      @openid_url.save
+    OpenidUrl.transaction do
+      @openid_url = OpenidUrl.where(:str => identity_url).first
+      if @openid_url.nil?
+        @openid_url = OpenidUrl.new(
+          :str => identity_url, :profile_image => profile_image
+        )
+        @openid_url.save
+      else
+        @openid_url.update_attribute(:profile_image, profile_image)
+      end
     end
 
     if flash[:auth_mode] == 'id_append'

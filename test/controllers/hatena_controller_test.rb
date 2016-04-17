@@ -116,8 +116,12 @@ class HatenaControllerTest < ActionController::TestCase
   end
 
   test "はてな認証成功後、初回ログインならプロフィール作成画面へ" do
+    expected = {
+      'name' => 'new-user',
+      'image_url' => 'http://www.hatena.ne.jp/users/ha/hatena/profile.gif'
+    }
     any_instance_of(Hatena::API::Auth) do |klass|
-      mock(klass).login('cert') {{'name' => 'new-user'}}
+      mock(klass).login('cert') { expected }
     end
 
     assert_difference('OpenidUrl.count') do
@@ -126,7 +130,8 @@ class HatenaControllerTest < ActionController::TestCase
 
     assert_redirected_to :controller => :profiles, :action => :new, :service_id => @service.id
     assert session[:openid_url_id].present?
-    assert_equal "http://www.hatena.ne.jp/new-user/", assigns(:openid_url).str
+    assert_equal "http://www.hatena.ne.jp/#{expected['name']}/", assigns(:openid_url).str
+    assert_equal expected['image_url'], assigns(:openid_url).profile_image
   end
 
   test "はてな認証成功後、初めて使うサービスなら結びつけてから戻す" do

@@ -6,6 +6,7 @@ payload = {
   'nickname' => @auth_ticket.profile.nickname,
   'profile_text' => @auth_ticket.profile.profile_html,
   'openid_url' => @auth_ticket.profile.primary_openid.str,
+  'profile_image' => @auth_ticket.profile.primary_openid.profile_image,
   'exp' => 5.minutes.from_now.to_i
 }
 JWT.encode(payload, @service.key)

@@ -8,7 +8,7 @@ class Profile < ActiveRecord::Base
   before_save :generate_long_name
 
   def primary_openid
-    return self.openid_urls.where(:primary_openid => true)[0]
+    return self.openid_urls.where(:primary_openid => true).order(:id).first
   end
 
   def profile_html(options = {:section_anchor_prefix => "profile_#{self.id}"})

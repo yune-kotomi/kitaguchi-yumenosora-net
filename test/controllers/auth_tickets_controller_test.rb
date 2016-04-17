@@ -16,12 +16,13 @@ class AuthTicketsControllerTest < ActionController::TestCase
     assert_response :success
     result = JWT.decode(response.body, @auth_ticket.service.key).first
     profile = @auth_ticket.profile
-    assert_equal ['profile_id', 'domain_name', 'screen_name', 'nickname', 'profile_text', 'openid_url', 'exp'].sort, result.keys.sort
+    assert_equal ['profile_id', 'domain_name', 'screen_name', 'nickname', 'profile_text', 'openid_url', 'exp', 'profile_image'].sort, result.keys.sort
     assert_equal profile.id, result['profile_id']
     assert_equal profile.domain_name, result['domain_name']
     assert_equal profile.screen_name, result['screen_name']
     assert_equal profile.nickname, result['nickname']
     assert_equal profile.primary_openid.str, result['openid_url']
+    assert_equal profile.primary_openid.profile_image, result['profile_image']
   end
 
   test "認証情報は一度しか取得できない" do
