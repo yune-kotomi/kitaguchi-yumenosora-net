@@ -21,7 +21,7 @@ def stub_service_config_provider(service)
     "banner" => {"1x" => "banner#{service.id}.png", "2x" => "banner#{service.id}@2x.png", "3x" => "banner#{service.id}@3x.png"},
     "root" => "https://www#{service.id}.example.com/",
     "authenticate" => {"success" => "https://www#{service.id}.example.com/auth_success", "failure" => "https://www#{service.id}.example.com/auth_failure"},
-    "profile" => {"update" => "https://www#{service.id}.example.com/profile_update", "back" => "https://www#{service.id}.example.com/back_from_profile"}
+    "profile" => {"update" => "https://www#{service.id}.example.com/profile_update", "back" => "https://www#{service.id}.example.com/back_from_profile/DOMAIN_NAME/SCREEN_NAME"}
   }
 
   token = JWT.encode(payload, service.key)

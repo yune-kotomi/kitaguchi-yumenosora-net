@@ -1,120 +1,70 @@
-<% @title = "ログイン" %>
-<% content_for :head do -%>
-  <%= javascript_include_tag "authenticate" %>
-  <style>
-    #buttons .button {
-      margin-top: 5px;
-    }
-  </style>
-<% end %>
+<% @title = "認証" %>
 
-<div class="container" style="margin-top: 1em;">
+<div class="introduction">
+  <h2>認証に使用するIDを選択して下さい</h2>
   <% if params[:mode] == 'id_append' %>
-    <div class="mod mod-cards">
-      <div class="crow card fill-white">
-        <div class="ws-12">
-          <p>
-            <% if Time.at(session[:last_login].to_i) > 5.minutes.ago %>
-              続いて、追加したいIDでログインしてください。
-            <% else %>
-              プロフィールに新しいIDを追加します。<br>
-              最初に、現在使っているIDでログインしてください。
-            <% end %>
-          </p>
-        </div>
+    <p>
+      <% if Time.at(session[:last_login].to_i) < 5.minutes.ago %>
+        プロフィールに新しいIDを追加します。<br>
+        最初に、現在使っているIDでログインしてください。
+      <% else %>
+        追加したいIDでログインしてください。
+      <% end %>
+    </p>
+  <% else %>
+    <p>
+      本サービスでは独自のID/パスワードを使用する代わりに、
+      他サービスのID/アカウントを使って認証を行います。
+    </p>
+  <% end %>
+</div>
+
+<div class="buttons">
+  <%= link_to hatena_login_path(
+    :service_id => (if @service.present?; @service.id; else; nil; end),
+    :mode => params[:mode]
+  ) do %><!--
+     --><button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+      はてなID
+    </button><!--
+   --><% end %>
+
+  <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect specific-id-button" data-url="http://livedoor.com">
+    livedoor ID
+  </button>
+
+  <%= link_to openid_connect_authenticate_path(
+    :service_id => (if @service.present?; @service.id; else; nil; end),
+    :mode => params[:mode]
+  ) do %><!--
+     --><button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+      Googleアカウント
+    </button><!--
+   --><% end %>
+
+  <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect specific-id-button" data-url="yahoo.co.jp">
+    Yahoo! JAPAN ID
+  </button>
+
+  <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="other-openid">
+    その他のOpenID
+  </button>
+</div>
+
+<dialog class="mdl-dialog" id="openid-login">
+  <h4 class="mdl-dialog__title">その他のOpenID</h4>
+  <%= form_tag openid_urls_login_path do %>
+    <div class="mdl-dialog__content">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <%= hidden_field_tag 'service_id', @service.id if @service.present? %>
+        <%= hidden_field_tag 'mode', params[:mode] %>
+        <%= text_field_tag :openid_url, '', :class => 'mdl-textfield__input' %>
+        <label class="mdl-textfield__label" for="openid_url">OpenID URL...</label>
       </div>
     </div>
-  <% else %>
-    <div class="mod mod-cards">
-      <div class="crow card fill-white">
-        <div class="ws-12">
-          <p>ログインに使用するIDを選択してください。</p>
-          <p>
-            本サービスでは独自のID/パスワードを使用する代わりに、
-            他サービスによる認証を使ってログインを行います。
-          </p>
-        </div>
-      </div>
+    <div class="mdl-dialog__actions">
+      <button type="submit" class="mdl-button">認証</button>
+      <button type="button" class="mdl-button">キャンセル</button>
     </div>
   <% end %>
-
-  <div id="buttons">
-    <%= link_to 'はてなID',
-      hatena_login_path(
-        :service_id => (if @service.present?; @service.id; else; nil; end),
-        :mode => params[:mode]
-      ),
-      {:class => 'button fill-blue text-white'} %>
-
-    <%= link_to 'livedoor ID',
-      '#',
-      :class => 'button fill-blue text-white specific-id-button',
-      :data => {:url => 'http://livedoor.com'} %>
-
-    <%= link_to 'mixi OpenID',
-      '#',
-      :class => 'button fill-blue text-white specific-id-button',
-      :data => {:url => 'https://mixi.jp'} %>
-
-    <%= link_to 'Googleアカウント',
-      openid_connect_authenticate_path(
-        :service_id => (if @service.present?; @service.id; else; nil; end),
-        :mode => params[:mode]
-      ),
-      {:class => 'button fill-blue text-white'} %>
-
-    <%= link_to 'Yahoo! JAPAN ID',
-      '#',
-      :class => 'button fill-blue text-white specific-id-button',
-      :data => {:url => 'yahoo.co.jp'} %>
-
-    <%= link_to 'その他のOpenID',
-      '#',
-      :class => 'button fill-blue text-white',
-      :id => 'other-openid' %>
-  </div>
-</div>
-
-<div class="modal" style="display: none" id="openid-form">
-  <div class="modal-inner crow no-gutter">
-    <div class="container">
-      <div class="crow fill-white card no-gutter" style="display:block;">
-        <div class="ws-12">
-          <div class="fill-blue tile text-white" style="padding:10px; width:100%;">
-            <span>その他のOpenID</span>
-          </div>
-
-          <div class="spacer quarter"></div>
-
-          <%= form_tag openid_urls_login_path do %>
-            <div class="crow up">
-              <div class="ws-12">
-                <%= hidden_field_tag 'service_id', @service.id if @service.present? %>
-                <%= hidden_field_tag 'mode', params[:mode] %>
-                <label for="openid_url">OpenID URL</label>
-                <%= text_field_tag :openid_url, '', :placeholder => "http://www.example.com/" %>
-              </div>
-            </div>
-
-            <div class="spacer quarter"></div>
-
-            <div class="crow">
-              <div class="ws-12" style="text-align: right;padding-bottom: 10px">
-                <%= link_to "#",
-                  :class => 'button fill-blue text-white close-button' do %>
-                  <i class="icon icon-cross"></i>
-                  キャンセル
-                <% end %>
-
-                <button type="submit" class="button fill-blue text-white">
-                  <i class="icon icon-login"></i>
-                  ログイン
-                </button>
-              </div>
-            </div>
-          <% end %>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+</dialog>

@@ -1,23 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><%= @title %>: <%= if @service;@service.title; else; Hotarugaike::Application.config.title;end %></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"/>
+    <title><%= @title %>: <%= if @service; @service.title; else; Hotarugaike::Application.config.title; end %></title>
 
-    <%= stylesheet_link_tag    "application", :media => "all" %>
+    <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track' => true %>
+    <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
     <%= csrf_meta_tags %>
-    <%= javascript_include_tag "application" %>
     <%= yield :head %>
   </head>
 
   <body data-base-url="<%= url_for root_url %>" data-rails-env="<%= Rails.env.to_s %>">
-    <div id="header" class="container">
-      <%= link_to image_tag('logo.png'), "/" unless @service %>
-      <%= link_to image_tag(@service.logos['1x'], :alt => @service.title, :srcset => @service.logos.map{|k, v| "#{v} #{k}"}.join(', ')), @service.root if @service %>
-    </div>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+      <header class="mdl-layout__header">
+        <% if @service.present? %>
+          <%
+            if @login_profile.present?
+              back_url = back_from_profile(@service, @login_profile)
+            else
+              back_url = @service.root
+            end
+          %>
+          <button class="mdl-layout-icon mdl-button mdl-js-button mdl-button--icon" onclick="location.href=<%= back_url.to_json %>">
+            <i class="material-icons">arrow_back</i>
+          </button>
+        <% end %>
+        <div class="mdl-layout__header-row">
+          <!-- Title -->
+          <span class="mdl-layout-title"><%= @title %></span>
+          <!-- Add spacer, to align navigation to the right -->
+          <div class="mdl-layout-spacer"></div>
+        </div>
+      </header>
 
-    <%= yield %>
+
+      <main class="mdl-layout__content">
+        <div class="page-content"><%= yield %></div>
+      </main>
+
+      <footer class="mdl-mega-footer">
+        <div class="mdl-mega-footer__left-section">
+          <div class="mdl-logo">
+            <%= link_to image_tag(@service.banners['1x'], :alt => @service.title, :srcset => @service.banners.map{|k, v| "#{v} #{k}"}.join(', ')), @service.root if @service %>
+
+            <a href="//ame.yumenosora.net/"><img src="//ame.yumenosora.net/images/presented_by/banner234x60.png" srcset="//ame.yumenosora.net/images/presented_by/banner234x60@2x.png 2x, //ame.yumenosora.net/images/presented_by/banner234x60@3x.png 3x" alt="presented by 雨上がりの青空を探して">
+          </div>
+          <ul class="mdl-mini-footer__link-list">
+            <li>
+              <a href="https://twitter.com/yumenosoranet">Twitter</a>
+            </li>
+            <li>
+              <a href="https://github.com/yune-kotomi/kitaguchi-yumenosora-net-hotarugaike">ソースコード</a>
+            </li>
+          </ul>
+        </div>
+      </footer>
+
+      <%= yield :bottom %>
+    </div>
   </body>
 </html>

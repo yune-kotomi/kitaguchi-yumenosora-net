@@ -1,61 +1,34 @@
-<% @title = "新規プロフィール作成" %>
-<% content_for :head do -%>
-  <%= javascript_include_tag "new_profile" %>
-<% end %>
+<% @title = "新規登録" %>
 
-<div class="container" style="margin-top: 1em;">
-  <% if @profile.errors.any? %>
-    <div class="mod mod-cards">
-      <div class="crow card fill-white">
-        <div class="ws-12">
-          <h3 class="panel-title">入力にエラーがあります</h3>
-          <ul>
-            <% @profile.errors.full_messages.each do |msg| %>
-              <li><%= msg %></li>
-            <% end %>
-          </ul>
-        </div>
-      </div>
-    </div>
-  <% end %>
+<div class="profile-new">
+  <%= form_tag profile_path, :class => 'profile-form' do%>
+    <h2>登録内容を入力して下さい</h2>
 
-  <% if ['www.google.com','me.yahoo.co.jp'].include?(@openid_url.domain_name) %>
-    <div class="mod mod-cards">
-      <div class="crow card fill-white">
-        <div class="ws-12">
-          <h3 class="panel-title">ユーザ登録済みにも関わらずこの画面が出る場合</h3>
-          <p>
-            他のIDでユーザ登録済みではありませんか？<br>
-            その場合はそのIDでログイン後、プロフィールの編集画面からこのIDを追加することができます。
-          </p>
-          <p>
-            このIDでユーザ登録済みにも関わらずこの画面が出る場合はお問い合わせください。<br>
-            <%= link_to '「雨上がりの青空を探して」 Twitterアカウント', "https://twitter.com/yumenosoranet" %>
-          </p>
-        </div>
-      </div>
-    </div>
-  <% end %>
-
-  <%= form_tag profile_path do%>
-    <h2>新規プロフィール</h2>
-
-    <div class="form-group">
-      <label for="profile_nickname">ニックネーム</label>
-      <%= text_field_tag "profile[nickname]", '' %>
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <%= text_field_tag "profile[nickname]", '', :class => 'mdl-textfield__input' %>
+      <label class="mdl-textfield__label" for="profile_nickname">ニックネーム(必須)...</label>
     </div>
 
-    <div class="form-group">
-      <label for="profile_profile_text">自己紹介文(省略可)</label>
-      <%= text_area_tag "profile[profile_text]", '' %>
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <%= text_area_tag "profile[profile_text]", '', :class => 'mdl-textfield__input' %>
+      <label class="mdl-textfield__label" for="profile_profile_text">自己紹介文...</label>
     </div>
     <%= hidden_field_tag 'id', params[:service_id] || params[:id] %>
 
-    <div style="margin-top: 10px; text-align: right">
-      <button type="submit" class="button fill-blue text-white">
-        <i class="icon icon-checkmark"></i>
-        作成してログイン
+    <div class="button">
+      <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+        <i class="material-icons">done</i>
+        登録
       </button>
     </div>
   <% end %>
 </div>
+
+<% if @profile.errors.any? %>
+  <% content_for :bottom do %>
+    <div id="errors" class="mdl-js-snackbar mdl-snackbar">
+      <div class="mdl-snackbar__text"></div>
+      <button class="mdl-snackbar__action" type="button"></button>
+    </div>
+  <% end %>
+<% end %>
