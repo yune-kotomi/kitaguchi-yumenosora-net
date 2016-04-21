@@ -1,0 +1,39 @@
+.accounts {
+  .mdl-list__item:hover {
+    background-color: rgba(158,158,158, 0.40);
+  }
+}
+
+.buttons {
+  text-align: center;
+
+  button {
+    margin: 5px;
+  }
+}
+
+.introduction {
+  margin: 10px;
+}
+
+.profile-form {
+  .mdl-textfield {
+    width: 100%;
+
+    textarea[name="profile[profile_text]"] {
+      height: 5em;
+    }
+  }
+}
+
+.profile-new {
+  padding: 10px;
+
+  .button {
+    text-align: right;
+  }
+}
+
+h2 {
+  font-size: 140%;
+}

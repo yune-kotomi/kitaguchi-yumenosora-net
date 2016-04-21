@@ -5,6 +5,8 @@ gem 'rails', '~> 4.2.0'
 
 # Use SCSS for stylesheets
 gem 'sass-rails'
+gem 'material_design_lite-sass'
+gem 'autoprefixer-rails'
 
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier'

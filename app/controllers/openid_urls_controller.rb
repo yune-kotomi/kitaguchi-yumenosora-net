@@ -58,6 +58,7 @@ class OpenidUrlsController < ApplicationController
 
       respond_to do |format|
         format.html { redirect_to profile_path }
+        format.json { render :json => {:status => 200 } }
       end
     else
       forbidden
