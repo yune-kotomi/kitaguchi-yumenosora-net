@@ -13,7 +13,7 @@ class HatenaControllerTest < ActionController::TestCase
   end
 
   test "hatena_authenticate?mode=id_append flashにモード記録、はてなへ" do
-    get :authenticate, :mode => 'id_append'
+    get :authenticate, :params => {:mode => 'id_append'}
 
     assert_response :redirect
     assert_equal 'id_append', flash[:auth_mode]
@@ -29,13 +29,13 @@ class HatenaControllerTest < ActionController::TestCase
     assert_no_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
         get :complete,
-          {:cert => 'cert'},
-          {
+          :params => {:cert => 'cert'},
+          :session => {
             :login_profile_id => @profile.id,
             :last_login => 4.minutes.ago.to_i,
             :openid_url_id => @primary_openid_url.id
           },
-          {:auth_mode => 'id_append'}
+          :flash => {:auth_mode => 'id_append'}
       end
     end
 
@@ -52,13 +52,13 @@ class HatenaControllerTest < ActionController::TestCase
     assert_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
         get :complete,
-          {:cert => 'cert'},
-          {
+          :params => {:cert => 'cert'},
+          :session => {
             :login_profile_id => @profile.id,
             :last_login => 4.minutes.ago.to_i,
             :openid_url_id => @primary_openid_url.id
           },
-          {:auth_mode => 'id_append'}
+          :flash => {:auth_mode => 'id_append'}
       end
     end
 
@@ -74,13 +74,13 @@ class HatenaControllerTest < ActionController::TestCase
     assert_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
         get :complete,
-          {:cert => 'cert'},
-          {
+          :params => {:cert => 'cert'},
+          :session => {
             :login_profile_id => @profile.id,
             :last_login => 6.minutes.ago.to_i,
             :openid_url_id => @primary_openid_url.id
           },
-          {:auth_mode => 'id_append'}
+          :flash => {:auth_mode => 'id_append'}
       end
     end
 
@@ -95,9 +95,9 @@ class HatenaControllerTest < ActionController::TestCase
     assert_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
         get :complete,
-          {:cert => 'cert'},
-          {:login_profile_id => @profile.id},
-          {:auth_mode => 'id_append'}
+          :params => {:cert => 'cert'},
+          :session => {:login_profile_id => @profile.id},
+          :flash => {:auth_mode => 'id_append'}
       end
     end
 
@@ -107,7 +107,7 @@ class HatenaControllerTest < ActionController::TestCase
   end
 
   test "はてな認証開始を叩くとはてなへリダイレクトする" do
-    get :authenticate, :service_id => @service.id
+    get :authenticate, :params => {:service_id => @service.id}
 
     assert_response :redirect
     params = CGI.parse(URI(response.location).query)
@@ -125,7 +125,9 @@ class HatenaControllerTest < ActionController::TestCase
     end
 
     assert_difference('OpenidUrl.count') do
-      get :complete, {:cert => 'cert'}, nil, {:hatena_after_service_id => @service.id}
+      get :complete,
+        :params => {:cert => 'cert'},
+        :flash => {:hatena_after_service_id => @service.id}
     end
 
     assert_redirected_to :controller => :profiles, :action => :new, :service_id => @service.id
@@ -143,7 +145,9 @@ class HatenaControllerTest < ActionController::TestCase
 
     assert_no_difference('OpenidUrl.count') do
       assert_difference('ProfileService.count') do
-        get :complete, {:cert => 'cert'}, nil, {:hatena_after_service_id => @service2.id}
+        get :complete,
+          :params => {:cert => 'cert'},
+          :flash => {:hatena_after_service_id => @service2.id}
       end
     end
 
@@ -162,7 +166,9 @@ class HatenaControllerTest < ActionController::TestCase
 
     assert_no_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
-        get :complete, {:cert => 'cert'}, nil, {:hatena_after_service_id => @service.id}
+        get :complete,
+          :params => {:cert => 'cert'},
+          :flash => {:hatena_after_service_id => @service.id}
       end
     end
 
@@ -183,7 +189,9 @@ class HatenaControllerTest < ActionController::TestCase
 
     assert_no_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
-        get :complete, {:cert => 'cert'}, nil, {:hatena_after_service_id => @service.id}
+        get :complete,
+          :params => {:cert => 'cert'},
+          :flash => {:hatena_after_service_id => @service.id}
       end
     end
 

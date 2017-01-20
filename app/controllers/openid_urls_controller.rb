@@ -1,7 +1,7 @@
 require 'openid-connect'
 
 class OpenidUrlsController < ApplicationController
-  before_filter :login_required, :only => [:destroy]
+  before_action :login_required, :only => [:destroy]
 
   def login
     begin
@@ -24,7 +24,9 @@ class OpenidUrlsController < ApplicationController
 
   def complete
     current_url = url_for(:service_id => params[:service_id])
-    parameters = params.reject{ |k,v| request.path_parameters[k] or request.path_parameters[k.to_sym] }
+    parameters =
+      params.tap{|p| p.permit(p.keys.select{|k| k.start_with?('openid.') }) }
+      .reject{ |k,v| request.path_parameters[k] or request.path_parameters[k.to_sym] }
     parameters.delete(:service_id)
     response = consumer.complete(parameters, current_url)
 

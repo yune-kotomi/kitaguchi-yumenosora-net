@@ -26,7 +26,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
       mock(klass).authentication_url('openid', root_url) { destination }
     end
 
-    get :authenticate, :service_id => @service.id
+    get :authenticate, :params => {:service_id => @service.id}
 
     assert_redirected_to destination
     assert_equal @service.id.to_s, flash[:openid_connect_after_service_id]
@@ -36,7 +36,8 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
     mock_openid_connect_response(0)
 
     assert_difference('OpenidUrl.count') do
-      get :complete, {}, nil, {:openid_connect_after_service_id => @service.id}
+      get :complete,
+        :flash => {:openid_connect_after_service_id => @service.id}
     end
 
     assert_redirected_to :controller => :profiles,
@@ -51,7 +52,8 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
 
     assert_no_difference("OpenidUrl.count") do
       assert_difference("ProfileService.count") do
-        get :complete, {}, nil, {:openid_connect_after_service_id => @service2.id}
+        get :complete,
+          :flash => {:openid_connect_after_service_id => @service2.id}
       end
     end
     assert_response :redirect
@@ -65,7 +67,8 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
 
     assert_no_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
-        get :complete, {}, nil, {:openid_connect_after_service_id => @service.id}
+        get :complete,
+          :flash => {:openid_connect_after_service_id => @service.id}
       end
     end
     assert_response :redirect
@@ -82,7 +85,8 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
 
     assert_no_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
-        get :complete, {}, nil, {:openid_connect_after_service_id => @service.id}
+        get :complete,
+          :flash => {:openid_connect_after_service_id => @service.id}
       end
     end
 
@@ -95,7 +99,8 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
       mock(klass).authentication_url('openid', root_url) { destination }
     end
 
-    get :authenticate, :service_id => @service.id, :mode => 'id_append'
+    get :authenticate,
+      :params => {:service_id => @service.id, :mode => 'id_append'}
 
     assert_redirected_to destination
     assert_equal 'id_append', flash[:auth_mode]
@@ -107,13 +112,12 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
     assert_no_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
         get :complete,
-          {},
-          {
+          :session => {
             :login_profile_id => @profile.id,
             :last_login => 4.minutes.ago.to_i,
             :openid_url_id => @primary_openid_url.id
           },
-          {:auth_mode => 'id_append'}
+          :flash => {:auth_mode => 'id_append'}
       end
     end
 
@@ -130,13 +134,12 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
     assert_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
         get :complete,
-          {},
-          {
+          :session => {
             :login_profile_id => @profile.id,
             :last_login => 4.minutes.ago.to_i,
             :openid_url_id => @primary_openid_url.id
           },
-          {:auth_mode => 'id_append'}
+          :flash => {:auth_mode => 'id_append'}
       end
     end
 
@@ -150,13 +153,12 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
     assert_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
         get :complete,
-          {},
-          {
+          :session => {
             :login_profile_id => @profile.id,
             :last_login => 6.minutes.ago.to_i,
             :openid_url_id => @primary_openid_url.id
           },
-          {:auth_mode => 'id_append'}
+          :flash => {:auth_mode => 'id_append'}
       end
     end
 
@@ -171,9 +173,8 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
     assert_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
         get :complete,
-          {},
-          {:login_profile_id => @profile.id},
-          {:auth_mode => 'id_append'}
+          :session => {:login_profile_id => @profile.id},
+          :flash => {:auth_mode => 'id_append'}
       end
     end
 

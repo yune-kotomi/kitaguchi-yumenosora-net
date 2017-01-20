@@ -21,8 +21,8 @@ class ProfilesControllerTest < ActionController::TestCase
 
     assert_difference('AuthTicket.count') do
       get :authenticate,
-        {:id => @service.id, :token => token},
-        {:login_profile_id => @profile.id}
+        :params => {:id => @service.id, :token => token},
+        :session => {:login_profile_id => @profile.id}
     end
 
     assert_response :redirect
@@ -40,8 +40,8 @@ class ProfilesControllerTest < ActionController::TestCase
     assert_difference('ProfileService.count') do
       assert_difference('AuthTicket.count') do
         get :authenticate,
-          {:id => @service2.id, :token => token},
-          {:login_profile_id => @profile.id}
+          :params => {:id => @service2.id, :token => token},
+          :session => {:login_profile_id => @profile.id}
       end
     end
 
@@ -56,7 +56,7 @@ class ProfilesControllerTest < ActionController::TestCase
 
   test "サービスIDが指定されていない場合はログイン状態でも使用するIDの入力を求める" do
     assert_no_difference('AuthTicket.count') do
-      get :authenticate, {}, {:login_profile_id => @profile.id}
+      get :authenticate, :session => {:login_profile_id => @profile.id}
     end
 
     assert_response :success
@@ -64,7 +64,9 @@ class ProfilesControllerTest < ActionController::TestCase
 
   test "エラーで戻ってきた場合はサービスIDがparamsにないのでflashの値を使う" do
     assert_no_difference('AuthTicket.count') do
-      get :authenticate, {}, {:login_profile_id => @profile.id}, {:service_id => @service2.id}
+      get :authenticate,
+        :session => {:login_profile_id => @profile.id},
+        :flash => {:service_id => @service2.id}
     end
 
     assert_response :success
@@ -76,7 +78,7 @@ class ProfilesControllerTest < ActionController::TestCase
 
     assert_no_difference('AuthTicket.count') do
       get :authenticate,
-        {:id => @service.id, :token => token}
+        :params => {:id => @service.id, :token => token}
     end
 
     assert_response :success
@@ -87,7 +89,7 @@ class ProfilesControllerTest < ActionController::TestCase
 
     assert_no_difference('AuthTicket.count') do
       post :authenticate,
-        {:id => @service.id, :token => token}
+        :params => {:id => @service.id, :token => token}
     end
 
     assert_response :forbidden
@@ -96,7 +98,7 @@ class ProfilesControllerTest < ActionController::TestCase
 
     assert_no_difference('AuthTicket.count') do
       post :authenticate,
-        {:id => @service.id, :token => token}
+        :params => {:id => @service.id, :token => token}
     end
 
     assert_response :forbidden
@@ -105,11 +107,11 @@ class ProfilesControllerTest < ActionController::TestCase
   test "プロフィール作成後は指定されたサービスに戻す" do
     assert_difference('Profile.count') do
       post :create,
-        {
+        :params => {
           :profile => {:nickname => 'nickname'},
           :id => @service.id
         },
-        {:openid_url_id => @unregistered_openid_url.id}
+        :session => {:openid_url_id => @unregistered_openid_url.id}
     end
     assert_response :redirect
     assert /^#{@service.authenticate_success}/ =~ response.location
@@ -121,27 +123,29 @@ class ProfilesControllerTest < ActionController::TestCase
   end
 
   test "should show profile" do
-    get :show, {}, {:login_profile_id => @profile.id}
+    get :show, :session => {:login_profile_id => @profile.id}
     assert_response :success
     assert_equal @profile, assigns(:profile)
   end
 
   test "プロフィール編集画面をservice_id付きで開くとセッションに記録する" do
-    get :show, {:service_id => @service.id}, {:login_profile_id => @profile.id}
+    get :show,
+      :params => {:service_id => @service.id},
+      :session => {:login_profile_id => @profile.id}
     assert_response :success
     assert_equal @service.id, session[:service_back_to]
   end
 
   test "ログアウト状態でupdateは不可" do
     patch :update,
-      {:profile => {  }}
+      :params => {:profile => {  }}
     assert_response :forbidden
   end
 
   test "should update profile" do
     patch :update,
-      {:profile => {  }},
-      {:login_profile_id => @profile.id}
+      :params => {:profile => {  }},
+      :session => {:login_profile_id => @profile.id}
 
     assert_response :success
   end
@@ -150,8 +154,8 @@ class ProfilesControllerTest < ActionController::TestCase
     stub_request(:any, @service_conf['profile']['update'])
 
     patch :update,
-      {:profile => {:nickname => 'new nickname'}},
-      {:login_profile_id => @profile.id}
+      :params => {:profile => {:nickname => 'new nickname'}},
+      :session => {:login_profile_id => @profile.id}
 
     assert_requested :post, @service_conf['profile']['update'], :times => 1 do |post_request|
       query = CGI.parse(post_request.body)
@@ -162,7 +166,7 @@ class ProfilesControllerTest < ActionController::TestCase
   end
 
   test "ログアウト後、サービスに戻す" do
-    get :logout, :id => @service.id
+    get :logout, :params => {:id => @service.id}
     assert_redirected_to @service.root
     assert session[:login_profile_id].nil?
     assert session[:last_login].nil?
