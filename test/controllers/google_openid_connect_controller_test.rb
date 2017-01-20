@@ -1,19 +1,19 @@
 require 'test_helper'
 
 class GoogleOpenidConnectControllerTest < ActionController::TestCase
-  def mock_openid_connect_response(identity_url = nil)
+  def mock_openid_connect_response(identity = nil)
     any_instance_of(OpenIDConnect) do |klass|
       result = {'result' => 'value'}
       mock(klass).authentication_result({"controller"=>"google_openid_connect", "action"=>"complete"}) { result }
-      mock(klass).parse_id_token(result) { {'openid_id' => identity_url} }
+      mock(klass).parse_id_token(result) { {'sub' => identity} }
     end
   end
 
   setup do
     @service = services(:one)
     @service2 = services(:two)
-    @primary_openid_url = openid_urls(:profile_one_primary)
-    @profile = profiles(:one)
+    @primary_openid_url = openid_urls(:profile_google)
+    @profile = profiles(:google)
 
     WebMock.reset!
     @service_conf = stub_service_config_provider(@service)
@@ -33,7 +33,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
   end
 
   test "認証成功後、初回ログインならプロフィール作成画面へ" do
-    mock_openid_connect_response("http://example.com/user")
+    mock_openid_connect_response(0)
 
     assert_difference('OpenidUrl.count') do
       get :complete, {}, nil, {:openid_connect_after_service_id => @service.id}
@@ -43,11 +43,11 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
       :action => :new,
       :service_id => @service.id
     assert session[:openid_url_id].present?
-    assert_equal "http://example.com/user", assigns(:openid_url).str
+    assert_equal "https://www.google.com/#openid-connect_0", assigns(:openid_url).str
   end
 
   test "認証成功後、初めて使うサービスなら結びつけてから戻す" do
-    mock_openid_connect_response(@primary_openid_url.str)
+    mock_openid_connect_response(1)
 
     assert_no_difference("OpenidUrl.count") do
       assert_difference("ProfileService.count") do
@@ -61,7 +61,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
   end
 
   test "認証成功後、使用済みサービスならそのまま戻す" do
-    mock_openid_connect_response(@primary_openid_url.str)
+    mock_openid_connect_response(1)
 
     assert_no_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
@@ -102,7 +102,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
   end
 
   test "id_appendで、今回のIDがプロフィール作成済みならば再度ID入力を求める(ID追加ステップ1完了、2へ)" do
-    mock_openid_connect_response(@primary_openid_url.str)
+    mock_openid_connect_response(1)
 
     assert_no_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
@@ -125,7 +125,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
   end
 
   test "id_appendで、今回のIDが新規、5分以内に登録済みID認証が通っていればID追加" do
-    mock_openid_connect_response("http://example.com/user")
+    mock_openid_connect_response(0)
 
     assert_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
@@ -145,7 +145,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
   end
 
   test "id_appendで、今回のIDが新規、登録済みID認証が通ってから5分以上経っていれば再度登録済みID入力を求める" do
-    mock_openid_connect_response("http://example.com/user")
+    mock_openid_connect_response(0)
 
     assert_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do
@@ -166,7 +166,7 @@ class GoogleOpenidConnectControllerTest < ActionController::TestCase
   end
 
   test "id_appendで、今回のIDが新規、前に登録済みID認証が通っていなければ再度登録済みID入力を求める" do
-    mock_openid_connect_response("http://example.com/user")
+    mock_openid_connect_response(0)
 
     assert_difference('OpenidUrl.count') do
       assert_no_difference('ProfileService.count') do

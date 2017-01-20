@@ -4,7 +4,7 @@
 # model remove the '{}' from the fixture names and add the columns immediately
 # below each fixture, per the syntax in the comments below
 #
-one: 
+one:
   domain_name: www.example.com
   screen_name: one
   long_name: www.example.com@one
@@ -12,7 +12,7 @@ one:
   profile_text: 一人目のプロフィール文
 
 #
-two: 
+two:
   domain_name: www.example.com
   screen_name: two
   long_name: www.example.com@two
@@ -26,3 +26,9 @@ hatena:
   nickname: はてな
   profile_text: はてなユーザ
 
+google:
+  domain_name: www.google.com
+  screen_name: google
+  long_name: www.google.com@google
+  nickname: google
+  profile_text: google
