@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '~> 4.2.0'
+gem 'rails', '~> 5.0.1'
 
 # Use SCSS for stylesheets
 gem 'sass-rails'
@@ -40,11 +40,11 @@ gem 'exception_notification'
 gem 'uuidtools'
 gem 'ruby-openid'
 gem 'hatenaapiauth'
-gem 'google-id-token', :github => 'Nerian/google-id-token'
+gem 'google-id-token', :git => 'https://github.com/Nerian/google-id-token.git'
 gem 'jwt'
 gem 'opal-rails'
-gem 'activerecord-session_store', :github => 'rails/activerecord-session_store', :ref => 'a30ec3117d189bfe67261e3c80364627107d76ea'
-gem 'text-hatena', :github => 'yune-kotomi/text-hatena'
+gem 'activerecord-session_store', :git => 'https://github.com/rails/activerecord-session_store.git'
+gem 'text-hatena', :git => 'https://github.com/yune-kotomi/text-hatena.git'
 
 group :development, :test do
   gem 'pry'
@@ -53,4 +53,5 @@ end
 group :test do
   gem 'webmock'
   gem 'rr', :require => false
+  gem 'rails-controller-testing'
 end

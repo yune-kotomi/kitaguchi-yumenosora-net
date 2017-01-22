@@ -70,7 +70,7 @@ class ServicesController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def service_params
-      params[:service]
+      params[:service] || ActionController::Parameters.new
     end
 
     def admin_login_required

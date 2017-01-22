@@ -1,5 +1,5 @@
 class ProfilesController < ApplicationController
-  before_filter :login_required, :only => [:show, :update]
+  before_action :login_required, :only => [:show, :update]
 
   # GET /profiles/1
   # GET /profiles/1.json
@@ -47,13 +47,13 @@ class ProfilesController < ApplicationController
   # PATCH/PUT /profiles/1.json
   def update
     respond_to do |format|
-      @login_profile.update(params[:profile].permit(:nickname, :profile_text))
+      @login_profile.update((params[:profile] || ActionController::Parameters.new).permit(:nickname, :profile_text))
       @login_profile.profile_services.each do |profile_service|
         profile_service.service.notice(@login_profile)
       end
 
-      format.html { render :text => 'true' }
-      format.json { render :text => ({:status => true}).to_json }
+      format.html { render :plain => 'true' }
+      format.json { render :plain => ({:status => true}).to_json }
     end
   end
 

@@ -34,3 +34,8 @@ hatena_id:
 
 livedoor_id:
   str: http://profile.livedoor.com/user
+
+profile_google:
+  str: https://www.google.com/#openid-connect_1
+  profile: google
+  primary_openid: true

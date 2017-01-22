@@ -13,10 +13,9 @@ class GoogleOpenidConnectController < ApplicationController
     @service = Service.where(:id => flash[:openid_connect_after_service_id]).first
 
     oc = OpenIDConnect.new(session, openid_connect_callback_url)
-
-    @result = oc.authentication_result(params)
+    @result = oc.authentication_result(params.permit(:controller, :action, :state, :code, :authuser, :session_state, :prompt, :error).to_h)
     @payload = oc.parse_id_token(@result)
-    openid_url = @payload['openid_id']
+    openid_url = "https://www.google.com/#openid-connect_#{@payload['sub']}"
 
     identity_retrieved_after(openid_url)
 

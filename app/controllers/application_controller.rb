@@ -1,5 +1,5 @@
 class ApplicationController < ActionController::Base
-  before_filter :login_user
+  before_action :login_user
 
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
@@ -26,7 +26,7 @@ class ApplicationController < ActionController::Base
   end
 
   def forbidden
-    render :text => 'Forbidden', :status => 403
+    render :plain => 'Forbidden', :status => 403
   end
 
   def deliver_to_service(service, profile)

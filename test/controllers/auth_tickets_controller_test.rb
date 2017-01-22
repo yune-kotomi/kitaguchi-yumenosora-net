@@ -11,7 +11,8 @@ class AuthTicketsControllerTest < ActionController::TestCase
       'key' => @auth_ticket.key,
       'exp' => 5.minutes.from_now.to_i
     }
-    get :show, {:id => @auth_ticket.service.id, :token => JWT.encode(payload, @auth_ticket.service.key)}
+    get :show,
+      :params => {:id => @auth_ticket.service.id, :token => JWT.encode(payload, @auth_ticket.service.key)}
 
     assert_response :success
     result = JWT.decode(response.body, @auth_ticket.service.key).first
@@ -31,8 +32,8 @@ class AuthTicketsControllerTest < ActionController::TestCase
       'exp' => 5.minutes.from_now.to_i
     }
     token = JWT.encode(payload, @auth_ticket.service.key)
-    get :show, {:id => @auth_ticket.service.id, :token => token}
-    get :show, {:id => @auth_ticket.service.id, :token => token}
+    get :show, :params => {:id => @auth_ticket.service.id, :token => token}
+    get :show, :params => {:id => @auth_ticket.service.id, :token => token}
     assert_response :missing
   end
 
@@ -42,7 +43,7 @@ class AuthTicketsControllerTest < ActionController::TestCase
       'exp' => 5.minutes.from_now.to_i
     }
     token = JWT.encode(payload, 'invalid key')
-    get :show, {:id => @auth_ticket.service.id, :token => token}
+    get :show, :params => {:id => @auth_ticket.service.id, :token => token}
     assert_response :forbidden
   end
 
@@ -51,7 +52,7 @@ class AuthTicketsControllerTest < ActionController::TestCase
       'key' => @auth_ticket.key
     }
     token = JWT.encode(payload, @auth_ticket.service.key)
-    get :show, {:id => @old_auth_ticket.service.id, :token => token}
+    get :show, :params => {:id => @old_auth_ticket.service.id, :token => token}
     assert_response :forbidden
   end
 end

@@ -20,7 +20,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
   def mock_complete_response(service_id, response_status = OpenID::Consumer::SUCCESS, identity_url = nil)
     any_instance_of(OpenID::Consumer) do |klass|
       mock(klass).complete(
-        @parameters,
+        ActionController::Parameters.new(@parameters),
         "http://test.host/openid_urls/complete#{'/' + service_id.to_s if service_id.present?}"
       ) {
         response = mock!
@@ -73,8 +73,8 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     expected = mock_redirect_url(@service.id)
 
     post :login,
-      {:openid_url => 'http://example.com/', :service_id => @service.id},
-      {:login_profile_id => @profile.id}
+      :params => {:openid_url => 'http://example.com/', :service_id => @service.id},
+      :session => {:login_profile_id => @profile.id}
 
     assert_redirected_to expected
   end
@@ -83,7 +83,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     mock_complete_response(@service.id, OpenID::Consumer::SUCCESS, @parameters['openid.identity'])
 
     assert_difference("OpenidUrl.count") do
-      get :complete, @parameters.merge(:service_id => @service.id)
+      get :complete, :params => @parameters.merge(:service_id => @service.id)
     end
 
     assert_redirected_to :controller => :profiles,
@@ -97,7 +97,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
 
     assert_no_difference("OpenidUrl.count") do
       assert_difference("ProfileService.count") do
-        get :complete, @parameters.merge(:service_id => @service2.id)
+        get :complete, :params => @parameters.merge(:service_id => @service2.id)
       end
     end
 
@@ -112,7 +112,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
 
     assert_no_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
-        get :complete, @parameters.merge(:service_id => @service.id)
+        get :complete, :params => @parameters.merge(:service_id => @service.id)
       end
     end
 
@@ -128,7 +128,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
 
     assert_no_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
-        get :complete, @parameters.merge(:service_id => @service.id)
+        get :complete, :params => @parameters.merge(:service_id => @service.id)
       end
     end
 
@@ -140,7 +140,7 @@ class OpenidUrlsControllerTest < ActionController::TestCase
 
     assert_no_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
-        get :complete, @parameters.merge(:service_id => @service.id)
+        get :complete, :params => @parameters.merge(:service_id => @service.id)
       end
     end
 
@@ -155,8 +155,8 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     end
 
     post :login,
-      {:openid_url => 'invalid url', :service_id => @service.id},
-      {:login_profile_id => @profile.id}
+      :params => {:openid_url => 'invalid url', :service_id => @service.id},
+      :session => {:login_profile_id => @profile.id}
 
     assert_redirected_to profile_authenticate_path
     assert_equal @service.id.to_s, flash[:service_id]
@@ -164,28 +164,34 @@ class OpenidUrlsControllerTest < ActionController::TestCase
 
   test "ログアウト状態ならOpenIDを削除できない" do
     assert_no_difference('OpenidUrl.count') do
-      delete :destroy, :id => @secondary_openid_url
+      delete :destroy, :params => {:id => @secondary_openid_url}
     end
     assert_response :forbidden
   end
 
   test "別のプロフィールのOpenIDは削除できない" do
     assert_no_difference('OpenidUrl.count') do
-      delete :destroy, {:id => @others_openid_url}, {:login_profile_id => @profile.id}
+      delete :destroy,
+        :params => {:id => @others_openid_url},
+        :session => {:login_profile_id => @profile.id}
     end
     assert_response :forbidden
   end
 
   test "自分のプロフィールのOpenIDは削除できる" do
     assert_difference('OpenidUrl.count', -1) do
-      delete :destroy, {:id => @secondary_openid_url}, {:login_profile_id => @profile.id}
+      delete :destroy,
+        :params => {:id => @secondary_openid_url},
+        :session => {:login_profile_id => @profile.id}
     end
     assert_redirected_to :controller => :profiles, :action => :show
   end
 
   test "自分のプライマリOpenIDは削除できない" do
     assert_no_difference('OpenidUrl.count') do
-      delete :destroy, {:id => @primary_openid_url}, {:login_profile_id => @profile.id}
+      delete :destroy,
+        :params => {:id => @primary_openid_url},
+        :session => {:login_profile_id => @profile.id}
     end
     assert_redirected_to :controller => :profiles, :action => :show
   end
@@ -195,8 +201,8 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     expected = mock_redirect_url
 
     post :login,
-      {:openid_url => 'http://example.com/', :mode => 'id_append'},
-      {:login_profile_id => @profile.id}
+      :params => {:openid_url => 'http://example.com/', :mode => 'id_append'},
+      :session => {:login_profile_id => @profile.id}
 
     assert_redirected_to expected
     assert_equal 'id_append', flash[:auth_mode]
@@ -207,9 +213,8 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     assert_no_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
         get :complete,
-          @parameters,
-          {}, # session
-          {:auth_mode => 'id_append'} # flash
+          :params => @parameters,
+          :flash => {:auth_mode => 'id_append'}
       end
     end
 
@@ -221,13 +226,13 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     assert_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
         get :complete,
-          @parameters,
-          {
+          :params => @parameters,
+          :session => {
             :login_profile_id => @profile.id,
             :last_login => 4.minutes.ago.to_i,
             :openid_url_id => @primary_openid_url.id
           }, # session
-          {:auth_mode => 'id_append'} # flash
+          :flash => {:auth_mode => 'id_append'} # flash
       end
     end
 
@@ -240,13 +245,13 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     assert_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
         get :complete,
-          @parameters,
-          {
+          :params => @parameters,
+          :session => {
             :login_profile_id => @profile.id,
             :last_login => 6.minutes.ago.to_i,
             :openid_url_id => @primary_openid_url.id
           }, # session
-          {:auth_mode => 'id_append'} # flash
+          :flash => {:auth_mode => 'id_append'} # flash
       end
     end
 
@@ -260,9 +265,9 @@ class OpenidUrlsControllerTest < ActionController::TestCase
     assert_difference("OpenidUrl.count") do
       assert_no_difference("ProfileService.count") do
         get :complete,
-          @parameters,
-          {:login_profile_id => @profile.id}, # session
-          {:auth_mode => 'id_append'} # flash
+          :params => @parameters,
+          :session => {:login_profile_id => @profile.id}, # session
+          :flash => {:auth_mode => 'id_append'} # flash
       end
     end
 
