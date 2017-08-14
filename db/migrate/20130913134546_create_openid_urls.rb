@@ -1,4 +1,4 @@
-class CreateOpenidUrls < ActiveRecord::Migration
+class CreateOpenidUrls < ActiveRecord::Migration[4.2]
   def change
     create_table :openid_urls do |t|
       t.string   "str"

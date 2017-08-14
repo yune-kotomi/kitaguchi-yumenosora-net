@@ -1,4 +1,4 @@
-class CreateProfileServices < ActiveRecord::Migration
+class CreateProfileServices < ActiveRecord::Migration[4.2]
   def change
     create_table :profile_services do |t|
       t.integer  "profile_id"
