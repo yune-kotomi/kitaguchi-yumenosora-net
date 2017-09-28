@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '~> 5.0.1'
+gem 'rails', '~> 5.1.1'
 
 # Use SCSS for stylesheets
 gem 'sass-rails'
@@ -41,7 +41,7 @@ gem 'uuidtools'
 gem 'ruby-openid'
 gem 'hatenaapiauth'
 gem 'google-id-token', :git => 'https://github.com/Nerian/google-id-token.git'
-gem 'jwt'
+gem 'jwt', '~> 1.5'
 gem 'opal-rails'
 gem 'activerecord-session_store', :git => 'https://github.com/rails/activerecord-session_store.git'
 gem 'text-hatena', :git => 'https://github.com/yune-kotomi/text-hatena.git'
