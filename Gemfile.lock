@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/Nerian/google-id-token.git
-  revision: 5f92faa6b9737ef9bbc49cb6ad5190147f280569
+  revision: d405b57bc4b576b11501a93171682ecdf60656eb
   specs:
     google-id-token (1.2.0)
       jwt
@@ -66,46 +66,45 @@ GEM
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
     arel (8.0.0)
-    autoprefixer-rails (7.1.4.1)
+    autoprefixer-rails (7.1.6)
       execjs
     builder (3.2.3)
     coderay (1.1.2)
     concurrent-ruby (1.0.5)
     crack (0.4.3)
       safe_yaml (~> 1.0.0)
-    crass (1.0.2)
-    erubi (1.6.1)
+    crass (1.0.3)
+    erubi (1.7.0)
     exception_notification (4.2.2)
       actionmailer (>= 4.0, < 6)
       activesupport (>= 4.0, < 6)
     execjs (2.7.0)
     ffi (1.9.18)
-    globalid (0.4.0)
+    globalid (0.4.1)
       activesupport (>= 4.2.0)
-    hashdiff (0.3.6)
+    hashdiff (0.3.7)
     hatenaapiauth (0.1.0)
       json (>= 0.4.1)
     hike (1.2.3)
-    i18n (0.8.6)
+    i18n (0.9.1)
+      concurrent-ruby (~> 1.0)
     jquery-rails (4.3.1)
       rails-dom-testing (>= 1, < 3)
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
     json (1.8.6)
-    jwt (1.5.6)
+    jwt (2.1.0)
     libv8 (3.16.14.19)
     loofah (2.1.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
-    mail (2.6.6)
-      mime-types (>= 1.16, < 4)
+    mail (2.7.0)
+      mini_mime (>= 0.1.1)
     material_design_lite-sass (1.3.0.1)
       autoprefixer-rails (>= 6.5)
       sass (>= 3.3)
     method_source (0.9.0)
-    mime-types (3.1)
-      mime-types-data (~> 3.2015)
-    mime-types-data (3.2016.0521)
+    mini_mime (1.0.0)
     mini_portile2 (2.3.0)
     minitest (5.10.3)
     multi_json (1.12.2)
@@ -134,12 +133,12 @@ GEM
       sprockets (~> 3.1)
       tilt (>= 1.4)
     pg (0.21.0)
-    pry (0.11.1)
+    pry (0.11.3)
       coderay (~> 1.1.0)
       method_source (~> 0.9.0)
-    public_suffix (3.0.0)
+    public_suffix (3.0.1)
     rack (2.0.3)
-    rack-test (0.7.0)
+    rack-test (0.8.2)
       rack (>= 1.0, < 3)
     rails (5.1.4)
       actioncable (= 5.1.4)
@@ -168,7 +167,7 @@ GEM
       method_source
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
-    rake (12.1.0)
+    rake (12.3.0)
     rb-fsevent (0.10.2)
     rb-inotify (0.9.10)
       ffi (>= 0.5.0, < 2)
@@ -177,12 +176,12 @@ GEM
     rr (1.2.1)
     ruby-openid (2.7.0)
     safe_yaml (1.0.4)
-    sass (3.5.1)
+    sass (3.5.3)
       sass-listen (~> 4.0.0)
     sass-listen (4.0.0)
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
-    sass-rails (5.0.6)
+    sass-rails (5.0.7)
       railties (>= 4.0.0, < 6)
       sass (~> 3.1)
       sprockets (>= 2.8, < 4.0)
@@ -208,18 +207,18 @@ GEM
     turbolinks (5.0.1)
       turbolinks-source (~> 5)
     turbolinks-source (5.0.3)
-    tzinfo (1.2.3)
+    tzinfo (1.2.4)
       thread_safe (~> 0.1)
-    uglifier (3.2.0)
+    uglifier (4.0.0)
       execjs (>= 0.3.0, < 3)
     uuidtools (2.1.5)
-    webmock (3.0.1)
+    webmock (3.1.1)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff
     websocket-driver (0.6.5)
       websocket-extensions (>= 0.1.0)
-    websocket-extensions (0.1.2)
+    websocket-extensions (0.1.3)
 
 PLATFORMS
   ruby
@@ -231,7 +230,7 @@ DEPENDENCIES
   google-id-token!
   hatenaapiauth
   jquery-rails
-  jwt (~> 1.5)
+  jwt
   material_design_lite-sass
   opal-rails
   pg
@@ -250,4 +249,4 @@ DEPENDENCIES
   webmock
 
 BUNDLED WITH
-   1.15.3
+   1.16.0
